@@ -83,23 +83,22 @@ aabb_capsule_collide :: proc(pos_aabb, pos_capsule: [3]f32, shape_aabb: AABB, sh
 
 	// rough edge radius test
 
-	closest_aabb_x := clamp(pos_capsule.x, aabb_min.x, aabb_max.x)
-	closest_aabb_z := clamp(pos_capsule.z, aabb_min.z, aabb_max.z)
+	closest_aabb: [3]f32
 
-	dx := pos_capsule.x - closest_aabb_x
-	dz := pos_capsule.z - closest_aabb_z
+	closest_aabb.x = clamp(pos_capsule.x, aabb_min.x, aabb_max.x)
+	closest_aabb.z = clamp(pos_capsule.z, aabb_min.z, aabb_max.z)
 
-	if dx * dx + dz * dz > shape_capsule.radius * shape_capsule.radius { return false }
+	if square_distance(pos_capsule.xz, closest_aabb.xz) > shape_capsule.radius * shape_capsule.radius { return false }
 
 	// find closest point on capsule and aabb and test distance
 
 	capsule_head := pos_capsule.y + shape_capsule.height - shape_capsule.radius
 	capsule_toe := pos_capsule.y + shape_capsule.radius
 
-	closest_aabb_y := clamp(capsule_toe, aabb_min.y, aabb_max.y)
-	closest_capsule_y := clamp(closest_aabb_y, capsule_toe, capsule_head)
+	closest_aabb.y = clamp(capsule_toe, aabb_min.y, aabb_max.y)
+	closest_capsule_y := clamp(closest_aabb.y, capsule_toe, capsule_head)
 
-	dy := closest_aabb_y - closest_capsule_y
+	closest_capsule := [3]f32{ pos_capsule.x, closest_capsule_y, pos_capsule.z }
 
-	return dx * dx + dy * dy + dz * dz <= shape_capsule.radius * shape_capsule.radius
+	return square_distance(closest_capsule, closest_aabb) <= shape_capsule.radius * shape_capsule.radius
 }
