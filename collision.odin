@@ -2,9 +2,19 @@ package main
 
 import "core:math/linalg"
 
-square_distance :: proc(a: [3]f32, b: [3]f32) -> f32 {
+square_distance_3d :: proc(a: [3]f32, b: [3]f32) -> f32 {
 	d := a - b
 	return d.x * d.x + d.y * d.y + d.z * d.z
+}
+
+square_distance_2d :: proc(a: [2]f32, b: [2]f32) -> f32 {
+	d := a - b
+	return d.x * d.x + d.y * d.y
+}
+
+square_distance :: proc {
+	square_distance_2d,
+	square_distance_3d
 }
 
 capsules_collide :: proc(pos_a, pos_b: [3]f32, shape_a, shape_b: Capsule) -> bool {
@@ -12,7 +22,7 @@ capsules_collide :: proc(pos_a, pos_b: [3]f32, shape_a, shape_b: Capsule) -> boo
 
 	radius_sum := shape_a.radius + shape_b.radius
 
-	if square_distance(pos_a, pos_b) > radius_sum * radius_sum { return false }
+	if square_distance(pos_a.xz, pos_b.xz) > radius_sum * radius_sum { return false }
 
 	// rough vertical test
 
