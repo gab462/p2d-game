@@ -74,12 +74,12 @@ aabb_capsule_collide :: proc(pos_aabb, pos_capsule: [3]f32, shape_aabb: AABB, sh
 
 	// rough aabb tests
 
-	if pos_capsule.x - shape_capsule.radius < aabb_min.x { return false }
-	if pos_capsule.x + shape_capsule.radius > aabb_max.x { return false }
+	if pos_capsule.x + shape_capsule.radius < aabb_min.x { return false }
+	if pos_capsule.x - shape_capsule.radius > aabb_max.x { return false }
 	if pos_capsule.z + shape_capsule.radius < aabb_min.z { return false }
 	if pos_capsule.z - shape_capsule.radius > aabb_max.z { return false }
-	if pos_capsule.y + shape_capsule.height + shape_capsule.radius < aabb_min.y { return false }
-	if pos_capsule.y - shape_capsule.radius > aabb_max.y { return false }
+	if pos_capsule.y + shape_capsule.height < aabb_min.y { return false }
+	if pos_capsule.y > aabb_max.y { return false }
 
 	// rough edge radius test
 
