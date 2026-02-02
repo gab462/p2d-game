@@ -1,7 +1,5 @@
 package main
 
-import "core:math/linalg"
-
 square_distance_3d :: proc(a: [3]f32, b: [3]f32) -> f32 {
 	d := a - b
 	return d.x * d.x + d.y * d.y + d.z * d.z
