@@ -22,7 +22,7 @@ AABB :: struct {
 	size: [3]f32,
 }
 
-Shape :: union {
+Shape :: union #no_nil {
 	Capsule,
 	AABB,
 }

@@ -1,11 +1,11 @@
 package main
 
-square_distance_3d :: proc(a: [3]f32, b: [3]f32) -> f32 {
+square_distance_3d :: proc(a, b: [3]f32) -> f32 {
 	d := a - b
 	return d.x * d.x + d.y * d.y + d.z * d.z
 }
 
-square_distance_2d :: proc(a: [2]f32, b: [2]f32) -> f32 {
+square_distance_2d :: proc(a, b: [2]f32) -> f32 {
 	d := a - b
 	return d.x * d.x + d.y * d.y
 }
@@ -99,4 +99,24 @@ aabb_capsule_collide :: proc(pos_aabb, pos_capsule: [3]f32, shape_aabb: AABB, sh
 	closest_capsule := [3]f32{ pos_capsule.x, closest_capsule_y, pos_capsule.z }
 
 	return square_distance(closest_capsule, closest_aabb) <= shape_capsule.radius * shape_capsule.radius
+}
+
+collision :: proc(pos_a, pos_b: [3]f32, shape_a, shape_b: Shape) -> bool {
+	switch a in shape_a {
+		case Capsule:
+			switch b in shape_b {
+			case Capsule:
+				return capsules_collide(pos_a, pos_b, a, b)
+			case AABB:
+				return aabb_capsule_collide(pos_b, pos_a, b, a)
+			}
+		case AABB:
+			switch b in shape_b {
+			case Capsule:
+				return aabb_capsule_collide(pos_a, pos_b, a, b)
+			case AABB:
+				return aabb_collide(pos_a, pos_b, a, b)
+			}
+	}
+	return false
 }
