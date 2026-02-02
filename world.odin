@@ -3,16 +3,16 @@ package main
 import rl "vendor:raylib"
 
 Entity :: struct {
-	mask: Mask,
-	position: Position,
-	velocity: Velocity,
-	shape: Shape,
+	mask:           Mask,
+	position:       Position,
+	velocity:       Velocity,
+	shape:          Shape,
 	collision_mask: Collision_Mask,
 }
 
 World :: struct {
 	entities: #soa[dynamic]Entity,
-	camera: rl.Camera,
+	camera:   rl.Camera,
 }
 
 create_entity :: proc(world: ^World, e: Entity = {}) -> uint {
