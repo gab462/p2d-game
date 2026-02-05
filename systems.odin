@@ -19,6 +19,7 @@ collision_system :: proc(e: ^#soa[dynamic]Entity) {
 		if !(e[i].mask >= mask) {continue}
 
 		for j := i + 1; j < len(e); j += 1 {
+			if !(e[j].mask >= mask) {continue}
 			if e[i].collision_mask & e[j].mask == (Mask{}) {continue}
 
 			collision := collide(e[i].position, e[j].position, e[i].shape, e[j].shape)

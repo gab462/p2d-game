@@ -22,6 +22,6 @@ create_entity :: proc(world: ^World, e: Entity = {}) -> uint {
 	return len(world.entities) - 1
 }
 
-delete_world :: proc(world: World) {
+destroy_world :: proc(world: World) {
 	delete(world.entities)
 }
