@@ -3,9 +3,11 @@ package main
 Component :: enum {
 	Position,
 	Velocity,
+	Rotation,
 	Shape,
 	Collision_Mask,
 	Movement_Control,
+	Rotation_Control,
 }
 
 Mask :: bit_set[Component]
@@ -13,6 +15,8 @@ Mask :: bit_set[Component]
 Position :: [3]f32
 
 Velocity :: [3]f32
+
+Rotation :: f32 // only available to capsules, around y axis
 
 Capsule :: struct {
 	radius: f32,
@@ -35,6 +39,7 @@ Move_Intent :: struct {
 	direction: [2]f32,
 }
 
-Look_Intent :: struct {
-	delta: [2]f32,
+Rotate_Intent :: struct {
+	sensitivity: f32,
+	delta:       f32,
 }

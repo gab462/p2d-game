@@ -6,15 +6,16 @@ Entity :: struct {
 	mask:           Mask,
 	position:       Position,
 	velocity:       Velocity,
+	rotation:       Rotation,
 	shape:          Shape,
 	collision_mask: Collision_Mask,
 	move_intent:    Move_Intent,
+	rotate_intent:  Rotate_Intent,
 }
 
 World :: struct {
-	entities:    #soa[dynamic]Entity,
-	camera:      rl.Camera,
-	look_intent: Look_Intent,
+	entities: #soa[dynamic]Entity,
+	camera:   rl.Camera,
 }
 
 create_entity :: proc(world: ^World, e: Entity = {}) -> uint {

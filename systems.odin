@@ -54,22 +54,6 @@ debug_draw_system :: proc(e: ^#soa[dynamic]Entity) {
 }
 
 input_task :: proc(world: ^World) {
-	e := &world.entities
-	p1 := 0 // player is always entity 0
-
-	forward := rl.IsKeyDown(rl.KeyboardKey.W)
-	backward := rl.IsKeyDown(rl.KeyboardKey.S)
-	right := rl.IsKeyDown(rl.KeyboardKey.D)
-	left := rl.IsKeyDown(rl.KeyboardKey.A)
-
-	e[p1].move_intent.direction.y = f32(int(forward)) - f32(int(backward))
-	e[p1].move_intent.direction.x = f32(int(left)) - f32(int(right))
-
-	if (e[p1].move_intent.direction.y != 0.0 || e[p1].move_intent.direction.x != 0.0) {
-		e[p1].move_intent.direction = linalg.normalize(e[p1].move_intent.direction)
-	}
-
-	// TODO: camera
 }
 
 movement_control_system :: proc(e: ^#soa[dynamic]Entity) {
@@ -80,5 +64,42 @@ movement_control_system :: proc(e: ^#soa[dynamic]Entity) {
 
 		intent := e[i].move_intent
 		e[i].velocity.xz = intent.direction * intent.max_speed
+		// TODO: zero value to consume?
 	}
+}
+
+camera_control_task :: proc(world: ^World, dt: f32) {
+	cam := &world.camera
+
+	e := &world.entities
+	p1 := 0 // player is always entity 0
+
+	forward := rl.IsKeyDown(rl.KeyboardKey.W)
+	backward := rl.IsKeyDown(rl.KeyboardKey.S)
+	right := rl.IsKeyDown(rl.KeyboardKey.D)
+	left := rl.IsKeyDown(rl.KeyboardKey.A)
+
+	direction := [2]f32{f32(int(forward)) - f32(int(backward)), f32(int(right)) - f32(int(left))}
+
+	if (direction.y != 0.0 || direction.x != 0.0) {
+		direction = linalg.normalize(direction)
+	}
+
+	rotate := rl.GetMouseDelta()
+
+	rotation := e[p1].rotate_intent
+	movement := e[p1].move_intent
+
+	rl.UpdateCameraPro(
+		cam,
+		[3]f32{direction.x, direction.y, 0.0} * movement.max_speed * dt,
+		{rotate.x, rotate.y, 0.0} * rotation.sensitivity,
+		0.0,
+	)
+
+	if (cam.position.xz != e[p1].position.xz) { 	// FIXME
+		e[p1].move_intent.direction =
+			(cam.position.xz - e[p1].position.xz) / movement.max_speed / dt
+	}
+	e[p1].rotate_intent.delta = rotate.x // FIXME
 }
