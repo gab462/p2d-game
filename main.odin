@@ -20,7 +20,6 @@ main :: proc() {
 		},
 	)
 
-
 	enemy := create_entity(
 		&world,
 		Entity{mask = {.Position, .Shape}, shape = AABB{size = {3.0, 3.0, 3.0}}},

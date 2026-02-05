@@ -36,13 +36,17 @@ debug_draw_system :: proc(e: ^#soa[dynamic]Entity) {
 
 		switch s in e[i].shape {
 		case Capsule:
-			toe := e[i].position
-			toe.y += s.radius
+			pos := e[i].position
+			head, toe := capsule_hemispheres(pos, s)
 
-			head := e[i].position
-			head.y += s.height - s.radius
-
-			rl.DrawCapsuleWires(toe, head, s.radius, 8, 8, rl.GREEN)
+			rl.DrawCapsuleWires(
+				[3]f32{pos.x, toe, pos.z},
+				[3]f32{pos.x, head, pos.z},
+				s.radius,
+				8,
+				8,
+				rl.GREEN,
+			)
 		case AABB:
 			rl.DrawCubeWiresV(e[i].position + [3]f32{0.0, s.size.y / 2.0, 0.0}, s.size, rl.GREEN)
 		}

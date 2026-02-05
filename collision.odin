@@ -33,10 +33,8 @@ capsules_collide :: proc(pos_a, pos_b: [3]f32, shape_a, shape_b: Capsule) -> boo
 
 	// calculate closest y points and test distance
 
-	a_head := pos_a.y + shape_a.height - shape_a.radius
-	a_toe := pos_a.y + shape_a.radius
-	b_head := pos_b.y + shape_b.height - shape_b.radius
-	b_toe := pos_b.y + shape_b.radius
+	a_head, a_toe := capsule_hemispheres(pos_a, shape_a)
+	b_head, b_toe := capsule_hemispheres(pos_b, shape_b)
 
 	a_closest_y := clamp(b_toe, a_toe, a_head)
 	b_closest_y := clamp(a_toe, b_toe, b_head)
@@ -95,8 +93,7 @@ aabb_capsule_collide :: proc(
 
 	// find closest point on capsule and aabb and test distance
 
-	capsule_head := pos_capsule.y + shape_capsule.height - shape_capsule.radius
-	capsule_toe := pos_capsule.y + shape_capsule.radius
+	capsule_head, capsule_toe := capsule_hemispheres(pos_capsule, shape_capsule)
 
 	closest_aabb.y = clamp(capsule_toe, aabb_min.y, aabb_max.y)
 	closest_capsule_y := clamp(closest_aabb.y, capsule_toe, capsule_head)
