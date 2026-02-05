@@ -5,6 +5,7 @@ Component :: enum {
 	Velocity,
 	Shape,
 	Collision_Mask,
+	Movement_Control,
 }
 
 Mask :: bit_set[Component]
@@ -28,3 +29,12 @@ Shape :: union #no_nil {
 }
 
 Collision_Mask :: Mask
+
+Move_Intent :: struct {
+	max_speed: f32,
+	direction: [2]f32,
+}
+
+Look_Intent :: struct {
+	delta: [2]f32,
+}

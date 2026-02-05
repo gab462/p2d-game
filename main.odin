@@ -4,7 +4,7 @@ import rl "vendor:raylib"
 
 main :: proc() {
 	world: World = {
-		camera = {position = {10.0, 10.0, 10.0}, up = {0.0, 1.0, 0.0}, fovy = 45.0},
+		camera = {position = {0.0, 10.0, -10.0}, up = {0.0, 1.0, 0.0}, fovy = 45.0},
 	}
 	defer delete_world(world)
 
@@ -14,8 +14,8 @@ main :: proc() {
 	player := create_entity(
 		&world,
 		Entity {
-			mask = {.Position, .Velocity, .Shape},
-			velocity = {1.0, 0.0, 0.0},
+			mask = {.Position, .Velocity, .Shape, .Movement_Control},
+			move_intent = {max_speed = 5.0},
 			shape = Capsule{radius = 1.0, height = 4.0},
 		},
 	)
@@ -23,16 +23,14 @@ main :: proc() {
 
 	enemy := create_entity(
 		&world,
-		Entity {
-			mask = {.Position, .Shape},
-			velocity = {1.0, 0.0, 0.0},
-			shape = AABB{size = {3.0, 3.0, 3.0}},
-		},
+		Entity{mask = {.Position, .Shape}, shape = AABB{size = {3.0, 3.0, 3.0}}},
 	)
 
 	for !rl.WindowShouldClose() {
 		dt := rl.GetFrameTime()
 
+		input_task(&world)
+		movement_control_system(&world.entities)
 		movement_system(&world.entities, dt)
 		collision_system(&world.entities)
 

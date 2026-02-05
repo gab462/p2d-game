@@ -1,5 +1,6 @@
 package main
 
+import "core:math/linalg"
 import rl "vendor:raylib"
 
 movement_system :: proc(e: ^#soa[dynamic]Entity, dt: f32) {
@@ -42,11 +43,37 @@ debug_draw_system :: proc(e: ^#soa[dynamic]Entity) {
 
 			rl.DrawCapsuleWires(toe, head, s.radius, 8, 8, rl.GREEN)
 		case AABB:
-			rl.DrawCubeWiresV(
-				e[i].position - [3]f32{s.size.x, 0.0, s.size.z} / 2.0,
-				s.size,
-				rl.GREEN,
-			)
+			rl.DrawCubeWiresV(e[i].position + [3]f32{0.0, s.size.y / 2.0, 0.0}, s.size, rl.GREEN)
 		}
+	}
+}
+
+input_task :: proc(world: ^World) {
+	e := &world.entities
+	p1 := 0 // player is always entity 0
+
+	forward := rl.IsKeyDown(rl.KeyboardKey.W)
+	backward := rl.IsKeyDown(rl.KeyboardKey.S)
+	right := rl.IsKeyDown(rl.KeyboardKey.D)
+	left := rl.IsKeyDown(rl.KeyboardKey.A)
+
+	e[p1].move_intent.direction.y = f32(int(forward)) - f32(int(backward))
+	e[p1].move_intent.direction.x = f32(int(left)) - f32(int(right))
+
+	if (e[p1].move_intent.direction.y != 0.0 || e[p1].move_intent.direction.x != 0.0) {
+		e[p1].move_intent.direction = linalg.normalize(e[p1].move_intent.direction)
+	}
+
+	// TODO: camera
+}
+
+movement_control_system :: proc(e: ^#soa[dynamic]Entity) {
+	mask := Mask{.Velocity, .Movement_Control}
+
+	for i := 0; i < len(e); i += 1 {
+		if !(e[i].mask >= mask) {continue}
+
+		intent := e[i].move_intent
+		e[i].velocity.xz = intent.direction * intent.max_speed
 	}
 }
