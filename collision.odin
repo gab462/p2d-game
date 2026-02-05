@@ -1,20 +1,5 @@
 package main
 
-square_distance_3d :: proc(a, b: [3]f32) -> f32 {
-	d := a - b
-	return d.x * d.x + d.y * d.y + d.z * d.z
-}
-
-square_distance_2d :: proc(a, b: [2]f32) -> f32 {
-	d := a - b
-	return d.x * d.x + d.y * d.y
-}
-
-square_distance :: proc {
-	square_distance_2d,
-	square_distance_3d,
-}
-
 capsules_collide :: proc(pos_a, pos_b: [3]f32, shape_a, shape_b: Capsule) -> bool {
 	// rough horizontal test
 
@@ -43,15 +28,6 @@ capsules_collide :: proc(pos_a, pos_b: [3]f32, shape_a, shape_b: Capsule) -> boo
 	b_closest := [3]f32{pos_b.x, b_closest_y, pos_b.z}
 
 	return square_distance(a_closest, b_closest) <= radius_sum * radius_sum
-}
-
-overlap_1d :: proc(a1, a2, b1, b2: f32) -> bool {
-	return a2 >= b1 && b2 >= a1
-}
-
-aabb_min_max :: proc(pos: [3]f32, size: [3]f32) -> ([3]f32, [3]f32) {
-	center := pos + [3]f32{0.0, size.y / 2.0, 0.0}
-	return center - size / 2.0, center + size / 2.0
 }
 
 aabb_collide :: proc(pos_a, pos_b: [3]f32, shape_a, shape_b: AABB) -> bool {
