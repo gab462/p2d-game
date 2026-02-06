@@ -26,10 +26,6 @@ aabb_min_max :: proc(pos: [3]f32, size: [3]f32) -> ([3]f32, [3]f32) {
 	return center - size / 2.0, center + size / 2.0
 }
 
-capsule_hemispheres :: proc(pos: [3]f32, shape: Capsule) -> (f32, f32) {
-	return pos.y + shape.height - shape.radius, pos.y + shape.radius
-}
-
 vector_rotate :: proc(target: [2]f32, amount: f32, center: [2]f32 = {}) -> [2]f32 {
 	res := target - center
 	return(

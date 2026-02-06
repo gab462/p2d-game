@@ -35,18 +35,10 @@ debug_draw_system :: proc(e: ^#soa[dynamic]Entity) {
 		if !(e[i].mask >= mask) {continue}
 
 		switch s in e[i].shape {
-		case Capsule:
+		case Cylinder:
 			pos := e[i].position
-			head, toe := capsule_hemispheres(pos, s)
 
-			rl.DrawCapsuleWires(
-				[3]f32{pos.x, toe, pos.z},
-				[3]f32{pos.x, head, pos.z},
-				s.radius,
-				8,
-				8,
-				rl.GREEN,
-			)
+			rl.DrawCylinderWires(pos, s.radius, s.radius, s.height, 8, rl.GREEN)
 		case AABB:
 			rl.DrawCubeWiresV(e[i].position + [3]f32{0.0, s.size.y / 2.0, 0.0}, s.size, rl.GREEN)
 		}
@@ -105,11 +97,10 @@ camera_control_task :: proc(world: ^World, dt: f32) {
 	e := &world.entities
 	p1 := 0 // player is always entity 0
 
-	shape := e[p1].shape.(Capsule)
-	head_y, _ := capsule_hemispheres(e[p1].position, shape)
+	shape := e[p1].shape.(Cylinder)
 
 	head := e[p1].position
-	head.y = head_y
+	head.y += shape.height - shape.radius
 
 	cam.target += head - cam.position
 	cam.position = head

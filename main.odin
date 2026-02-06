@@ -16,13 +16,13 @@ main :: proc() {
 		&world,
 		Entity {
 			mask = {.Position, .Velocity, .Rotation, .Shape, .Controlled},
-			shape = Capsule{radius = 1.0, height = 4.0},
+			shape = Cylinder{radius = 1.0, height = 4.0},
 			controlled = {move_intent = {max_speed = 5.0}, rotate_intent = {sensitivity = 0.01}},
 		},
 	)
 
-	player_head, _ := capsule_hemispheres([3]f32{}, world.entities[player].shape.(Capsule))
-	rl.CameraMoveUp(&world.camera, player_head)
+	player_shape := world.entities[player].shape.(Cylinder)
+	rl.CameraMoveUp(&world.camera, player_shape.height - player_shape.radius)
 
 	cam_fw := rl.GetCameraForward(&world.camera)
 	world.entities[player].rotation = math.atan2(cam_fw.z, cam_fw.x)
@@ -40,9 +40,8 @@ main :: proc() {
 		input_task(&world)
 		camera_control_task(&world, dt)
 		control_system(&world.entities)
-		movement_system(&world.entities, dt)
-
 		collision_system(&world.entities)
+		movement_system(&world.entities, dt)
 
 		rl.BeginDrawing()
 

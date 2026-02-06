@@ -17,7 +17,7 @@ Velocity :: [3]f32
 
 Rotation :: [2]f32 // yaw and pitch
 
-Capsule :: struct {
+Cylinder :: struct {
 	radius: f32,
 	height: f32,
 }
@@ -27,7 +27,7 @@ AABB :: struct {
 }
 
 Shape :: union #no_nil {
-	Capsule,
+	Cylinder,
 	AABB,
 }
 
