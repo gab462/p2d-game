@@ -6,8 +6,7 @@ Component :: enum {
 	Rotation,
 	Shape,
 	Collision_Mask,
-	Movement_Control,
-	Rotation_Control,
+	Controlled,
 }
 
 Mask :: bit_set[Component]
@@ -42,4 +41,9 @@ Move_Intent :: struct {
 Rotate_Intent :: struct {
 	sensitivity: f32,
 	delta:       [2]f32,
+}
+
+Controlled :: struct {
+	move_intent: Move_Intent,
+	rotate_intent: Rotate_Intent,
 }

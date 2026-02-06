@@ -54,26 +54,26 @@ debug_draw_system :: proc(e: ^#soa[dynamic]Entity) {
 }
 
 movement_control_system :: proc(e: ^#soa[dynamic]Entity) {
-	mask := Mask{.Velocity, .Movement_Control}
+	mask := Mask{.Velocity, .Controlled}
 
 	for i := 0; i < len(e); i += 1 {
 		if !(e[i].mask >= mask) {continue}
 
-		intent := e[i].move_intent
+		intent := e[i].controlled.move_intent
 		e[i].velocity.xz = intent.direction * intent.max_speed
-		e[i].move_intent.direction = {} // consume
+		e[i].controlled.move_intent.direction = {} // consume
 	}
 }
 
 rotation_control_system :: proc(e: ^#soa[dynamic]Entity) {
-	mask := Mask{.Rotation, .Rotation_Control}
+	mask := Mask{.Rotation, .Controlled}
 
 	for i := 0; i < len(e); i += 1 {
 		if !(e[i].mask >= mask) {continue}
 
-		intent := e[i].rotate_intent
+		intent := e[i].controlled.rotate_intent
 		e[i].rotation += intent.delta * intent.sensitivity
-		e[i].rotate_intent.delta = {} // consume
+		e[i].controlled.rotate_intent.delta = {} // consume
 	}
 }
 
@@ -93,11 +93,11 @@ input_task :: proc(world: ^World) {
 		direction = linalg.normalize(direction)
 
 		// rotate to camera angle
-		e[p1].move_intent.direction = vector_rotate(direction, e[p1].rotation.x)
+		e[p1].controlled.move_intent.direction = vector_rotate(direction, e[p1].rotation.x)
 	}
 
 	// Rotation
-	e[p1].rotate_intent.delta = rl.GetMouseDelta()
+	e[p1].controlled.rotate_intent.delta = rl.GetMouseDelta()
 }
 
 camera_control_task :: proc(world: ^World, dt: f32) {
@@ -106,13 +106,13 @@ camera_control_task :: proc(world: ^World, dt: f32) {
 	e := &world.entities
 	p1 := 0 // player is always entity 0
 
-	move := e[p1].move_intent.direction * e[p1].move_intent.max_speed * dt
+	move := e[p1].controlled.move_intent.direction * e[p1].controlled.move_intent.max_speed * dt
 	velocity := e[p1].velocity * dt
 
 	cam.position += [3]f32{move.x, velocity.y, move.y}
 	cam.target += [3]f32{move.x, velocity.y, move.y}
 
-	rotate := e[p1].rotate_intent.delta * e[p1].rotate_intent.sensitivity
+	rotate := e[p1].controlled.rotate_intent.delta * e[p1].controlled.rotate_intent.sensitivity
 	rl.CameraYaw(cam, -rotate.x, false)
 	rl.CameraPitch(cam, -rotate.y, true, false, false)
 }
