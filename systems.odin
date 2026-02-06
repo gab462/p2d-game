@@ -84,7 +84,12 @@ input_task :: proc(world: ^World) {
 		direction = linalg.normalize(direction)
 
 		// rotate to camera angle
-		e[p1].controlled.move_intent.direction = vector_rotate(direction, e[p1].rotation.x)
+		rotated := rl.Vector3RotateByAxisAngle(
+			{direction.x, direction.y, 0.0},
+			{0.0, 0.0, 1.0},
+			e[p1].rotation.x,
+		)
+		e[p1].controlled.move_intent.direction = rotated.xy
 	}
 
 	// Rotation

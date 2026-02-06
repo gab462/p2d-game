@@ -25,14 +25,3 @@ aabb_min_max :: proc(pos: [3]f32, size: [3]f32) -> ([3]f32, [3]f32) {
 	center := pos + [3]f32{0.0, size.y / 2.0, 0.0}
 	return center - size / 2.0, center + size / 2.0
 }
-
-vector_rotate :: proc(target: [2]f32, amount: f32, center: [2]f32 = {}) -> [2]f32 {
-	res := target - center
-	return(
-		[2]f32 {
-			res.x * math.cos(amount) - res.y * math.sin(amount),
-			res.x * math.sin(amount) + res.y * math.cos(amount),
-		} +
-		center \
-	)
-}
