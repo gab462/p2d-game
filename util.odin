@@ -1,5 +1,7 @@
 package main
 
+import "core:math"
+
 square_distance_3d :: proc(a, b: [3]f32) -> f32 {
 	d := a - b
 	return d.x * d.x + d.y * d.y + d.z * d.z
@@ -26,4 +28,15 @@ aabb_min_max :: proc(pos: [3]f32, size: [3]f32) -> ([3]f32, [3]f32) {
 
 capsule_hemispheres :: proc(pos: [3]f32, shape: Capsule) -> (f32, f32) {
 	return pos.y + shape.height - shape.radius, pos.y + shape.radius
+}
+
+vector_rotate :: proc(target: [2]f32, amount: f32, center: [2]f32 = {}) -> [2]f32 {
+	res := target - center
+	return(
+		[2]f32 {
+			res.x * math.cos(amount) - res.y * math.sin(amount),
+			res.x * math.sin(amount) + res.y * math.cos(amount),
+		} +
+		center \
+	)
 }

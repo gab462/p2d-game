@@ -16,7 +16,7 @@ Position :: [3]f32
 
 Velocity :: [3]f32
 
-Rotation :: f32 // only available to capsules, around y axis
+Rotation :: [2]f32 // yaw and pitch
 
 Capsule :: struct {
 	radius: f32,
@@ -41,5 +41,5 @@ Move_Intent :: struct {
 
 Rotate_Intent :: struct {
 	sensitivity: f32,
-	delta:       f32,
+	delta:       [2]f32,
 }

@@ -53,9 +53,6 @@ debug_draw_system :: proc(e: ^#soa[dynamic]Entity) {
 	}
 }
 
-input_task :: proc(world: ^World) {
-}
-
 movement_control_system :: proc(e: ^#soa[dynamic]Entity) {
 	mask := Mask{.Velocity, .Movement_Control}
 
@@ -64,16 +61,27 @@ movement_control_system :: proc(e: ^#soa[dynamic]Entity) {
 
 		intent := e[i].move_intent
 		e[i].velocity.xz = intent.direction * intent.max_speed
-		// TODO: zero value to consume?
+		e[i].move_intent.direction = {} // consume
 	}
 }
 
-camera_control_task :: proc(world: ^World, dt: f32) {
-	cam := &world.camera
+rotation_control_system :: proc(e: ^#soa[dynamic]Entity) {
+	mask := Mask{.Rotation, .Rotation_Control}
 
+	for i := 0; i < len(e); i += 1 {
+		if !(e[i].mask >= mask) {continue}
+
+		intent := e[i].rotate_intent
+		e[i].rotation += intent.delta * intent.sensitivity
+		e[i].rotate_intent.delta = {} // consume
+	}
+}
+
+input_task :: proc(world: ^World) {
 	e := &world.entities
 	p1 := 0 // player is always entity 0
 
+	// Movement
 	forward := rl.IsKeyDown(rl.KeyboardKey.W)
 	backward := rl.IsKeyDown(rl.KeyboardKey.S)
 	right := rl.IsKeyDown(rl.KeyboardKey.D)
@@ -83,23 +91,28 @@ camera_control_task :: proc(world: ^World, dt: f32) {
 
 	if (direction.y != 0.0 || direction.x != 0.0) {
 		direction = linalg.normalize(direction)
+
+		// rotate to camera angle
+		e[p1].move_intent.direction = vector_rotate(direction, e[p1].rotation.x)
 	}
 
-	rotate := rl.GetMouseDelta()
+	// Rotation
+	e[p1].rotate_intent.delta = rl.GetMouseDelta()
+}
 
-	rotation := e[p1].rotate_intent
-	movement := e[p1].move_intent
+camera_control_task :: proc(world: ^World, dt: f32) {
+	cam := &world.camera
 
-	rl.UpdateCameraPro(
-		cam,
-		[3]f32{direction.x, direction.y, 0.0} * movement.max_speed * dt,
-		{rotate.x, rotate.y, 0.0} * rotation.sensitivity,
-		0.0,
-	)
+	e := &world.entities
+	p1 := 0 // player is always entity 0
 
-	if (cam.position.xz != e[p1].position.xz) { 	// FIXME
-		e[p1].move_intent.direction =
-			(cam.position.xz - e[p1].position.xz) / movement.max_speed / dt
-	}
-	e[p1].rotate_intent.delta = rotate.x // FIXME
+	move := e[p1].move_intent.direction * e[p1].move_intent.max_speed * dt
+	velocity := e[p1].velocity * dt
+
+	cam.position += [3]f32{move.x, velocity.y, move.y}
+	cam.target += [3]f32{move.x, velocity.y, move.y}
+
+	rotate := e[p1].rotate_intent.delta * e[p1].rotate_intent.sensitivity
+	rl.CameraYaw(cam, -rotate.x, false)
+	rl.CameraPitch(cam, -rotate.y, true, false, false)
 }

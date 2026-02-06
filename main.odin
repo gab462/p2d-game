@@ -1,5 +1,6 @@
 package main
 
+import "core:math"
 import rl "vendor:raylib"
 
 main :: proc() {
@@ -14,12 +15,18 @@ main :: proc() {
 	player := create_entity(
 		&world,
 		Entity {
-			mask = {.Position, .Velocity, .Shape, .Movement_Control},
+			mask = {.Position, .Velocity, .Rotation, .Shape, .Movement_Control, .Rotation_Control},
 			shape = Capsule{radius = 1.0, height = 4.0},
 			move_intent = {max_speed = 5.0},
-			rotate_intent = {sensitivity = 0.05},
+			rotate_intent = {sensitivity = 0.01},
 		},
 	)
+
+	player_head, _ := capsule_hemispheres([3]f32{}, world.entities[player].shape.(Capsule))
+	rl.CameraMoveUp(&world.camera, player_head)
+
+	cam_fw := rl.GetCameraForward(&world.camera)
+	world.entities[player].rotation = math.atan2(cam_fw.z, cam_fw.x)
 
 	enemy := create_entity(
 		&world,
@@ -31,14 +38,11 @@ main :: proc() {
 	for !rl.WindowShouldClose() {
 		dt := rl.GetFrameTime()
 
+		input_task(&world)
 		camera_control_task(&world, dt)
 		movement_control_system(&world.entities)
+		rotation_control_system(&world.entities)
 		movement_system(&world.entities, dt)
-
-		// FIXME
-		player_head, _ := capsule_hemispheres([3]f32{}, world.entities[player].shape.(Capsule))
-		world.camera.target.y += player_head - world.camera.position.y
-		world.camera.position.y = player_head
 
 		collision_system(&world.entities)
 
