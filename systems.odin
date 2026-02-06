@@ -105,11 +105,14 @@ camera_control_task :: proc(world: ^World, dt: f32) {
 	e := &world.entities
 	p1 := 0 // player is always entity 0
 
-	move := e[p1].controlled.move_intent.direction * e[p1].controlled.move_intent.max_speed * dt
-	velocity := e[p1].velocity * dt
+	shape := e[p1].shape.(Capsule)
+	head_y, _ := capsule_hemispheres(e[p1].position, shape)
 
-	cam.position += [3]f32{move.x, velocity.y, move.y}
-	cam.target += [3]f32{move.x, velocity.y, move.y}
+	head := e[p1].position
+	head.y = head_y
+
+	cam.target += head - cam.position
+	cam.position = head
 
 	rotate := e[p1].controlled.rotate_intent.delta * e[p1].controlled.rotate_intent.sensitivity
 	rl.CameraYaw(cam, -rotate.x, false)
