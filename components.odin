@@ -44,6 +44,6 @@ Rotate_Intent :: struct {
 }
 
 Controlled :: struct {
-	move_intent: Move_Intent,
+	move_intent:   Move_Intent,
 	rotate_intent: Rotate_Intent,
 }

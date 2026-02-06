@@ -17,10 +17,7 @@ main :: proc() {
 		Entity {
 			mask = {.Position, .Velocity, .Rotation, .Shape, .Controlled},
 			shape = Capsule{radius = 1.0, height = 4.0},
-			controlled = {
-				move_intent = {max_speed = 5.0},
-				rotate_intent = {sensitivity = 0.01},
-			},
+			controlled = {move_intent = {max_speed = 5.0}, rotate_intent = {sensitivity = 0.01}},
 		},
 	)
 

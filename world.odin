@@ -9,7 +9,7 @@ Entity :: struct {
 	rotation:       Rotation,
 	shape:          Shape,
 	collision_mask: Collision_Mask,
-	controlled: Controlled,
+	controlled:     Controlled,
 }
 
 World :: struct {

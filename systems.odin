@@ -60,6 +60,8 @@ movement_control_system :: proc(e: ^#soa[dynamic]Entity) {
 		if !(e[i].mask >= mask) {continue}
 
 		intent := e[i].controlled.move_intent
+
+		// velocity instead of position due to non-controlled objects with inertia
 		e[i].velocity.xz = intent.direction * intent.max_speed
 		e[i].controlled.move_intent.direction = {} // consume
 	}
