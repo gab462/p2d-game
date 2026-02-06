@@ -39,8 +39,7 @@ main :: proc() {
 
 		input_task(&world)
 		camera_control_task(&world, dt)
-		movement_control_system(&world.entities)
-		rotation_control_system(&world.entities)
+		control_system(&world.entities)
 		movement_system(&world.entities, dt)
 
 		collision_system(&world.entities)

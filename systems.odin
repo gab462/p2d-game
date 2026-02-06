@@ -53,29 +53,26 @@ debug_draw_system :: proc(e: ^#soa[dynamic]Entity) {
 	}
 }
 
-movement_control_system :: proc(e: ^#soa[dynamic]Entity) {
-	mask := Mask{.Velocity, .Controlled}
+control_system :: proc(e: ^#soa[dynamic]Entity) {
+	mask := Mask{.Controlled}
 
 	for i := 0; i < len(e); i += 1 {
 		if !(e[i].mask >= mask) {continue}
 
-		intent := e[i].controlled.move_intent
+		if .Velocity in e[i].mask {
+			intent := e[i].controlled.move_intent
 
-		// velocity instead of position due to non-controlled objects with inertia
-		e[i].velocity.xz = intent.direction * intent.max_speed
-		e[i].controlled.move_intent.direction = {} // consume
-	}
-}
+			// velocity instead of position due to non-controlled objects with inertia
+			e[i].velocity.xz = intent.direction * intent.max_speed
+			e[i].controlled.move_intent.direction = {} // consume
+		}
 
-rotation_control_system :: proc(e: ^#soa[dynamic]Entity) {
-	mask := Mask{.Rotation, .Controlled}
+		if .Rotation in e[i].mask {
+			intent := e[i].controlled.rotate_intent
 
-	for i := 0; i < len(e); i += 1 {
-		if !(e[i].mask >= mask) {continue}
-
-		intent := e[i].controlled.rotate_intent
-		e[i].rotation += intent.delta * intent.sensitivity
-		e[i].controlled.rotate_intent.delta = {} // consume
+			e[i].rotation += intent.delta * intent.sensitivity
+			e[i].controlled.rotate_intent.delta = {} // consume
+		}
 	}
 }
 
