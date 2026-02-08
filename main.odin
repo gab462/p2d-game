@@ -57,12 +57,12 @@ main :: proc() {
 		control_system(&world.entities)
 		gravity_system(&world.entities, gravity, dt)
 		movement_system(&world.entities, dt)
-		camera_control_task(&world, dt)
 		collision_system(&world.entities)
+		camera_control_task(&world, dt)
 
 		rl.BeginDrawing()
 
-		rl.ClearBackground(rl.RAYWHITE)
+		rl.ClearBackground(rl.BLACK)
 
 		rl.BeginMode3D(world.camera)
 		rl.DrawGrid(100, 1)
