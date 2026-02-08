@@ -12,7 +12,7 @@ movement_system :: proc(e: ^#soa[dynamic]Entity, dt: f32) {
 	}
 }
 
-collision_system :: proc(e: ^#soa[dynamic]Entity) {
+collision_system :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event) {
 	mask: Mask = {.Position, .Velocity, .Shape, .Collision_Mask}
 
 	for i := 0; i < len(e) - 1; i += 1 {
@@ -22,19 +22,33 @@ collision_system :: proc(e: ^#soa[dynamic]Entity) {
 			if !(e[j].mask >= {.Position, .Shape}) {continue}
 			if e[i].collision_mask & e[j].mask == (Mask{}) {continue}
 
-			// TODO: save collision
 			collision, hit := collide(e[i].position, e[j].position, e[i].shape, e[j].shape)
 
 			if hit {
-				e[i].position += collision.mtv
-
-				if collision.mtv.y > 0.0 && e[i].velocity.y < 0.0 {
-					// hitting ground, cancel gravity
-					e[i].velocity.y = 0.0
-				}
+				append(events, Collision_Event {
+					data = collision,
+					a = i,
+					b = j,
+				})
 			}
 		}
 	}
+}
+
+event_processing_task :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event) {
+	for event in events {
+		switch ev in event {
+		case Collision_Event:
+			e[ev.a].position += ev.data.mtv
+
+			if ev.data.mtv.y > 0.0 && e[ev.a].velocity.y < 0.0 {
+				// hitting ground, cancel gravity
+				e[ev.a].velocity.y = 0.0
+			}
+		}
+	}
+
+	clear(events)
 }
 
 debug_draw_system :: proc(e: ^#soa[dynamic]Entity) {
@@ -75,7 +89,7 @@ control_system :: proc(e: ^#soa[dynamic]Entity) {
 	}
 }
 
-input_task :: proc(world: ^World, player: uint) {
+input_task :: proc(world: ^World, player: int) {
 	e := &world.entities
 
 	// Movement
@@ -104,7 +118,7 @@ input_task :: proc(world: ^World, player: uint) {
 	e[player].controlled.rotate_intent.delta = rl.GetMouseDelta()
 }
 
-camera_control_task :: proc(world: ^World, player: uint) {
+camera_control_task :: proc(world: ^World, player: int) {
 	cam := &world.camera
 
 	e := &world.entities

@@ -15,9 +15,10 @@ Entity :: struct {
 World :: struct {
 	entities: #soa[dynamic]Entity,
 	camera:   rl.Camera,
+	events: [dynamic]Event,
 }
 
-create_entity :: proc(world: ^World, e: Entity = {}) -> uint {
+create_entity :: proc(world: ^World, e: Entity = {}) -> int {
 	append_soa(&world.entities, e)
 	return len(world.entities) - 1
 }

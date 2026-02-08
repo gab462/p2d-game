@@ -54,7 +54,8 @@ main :: proc() {
 		control_system(&world.entities)
 		movement_system(&world.entities, dt)
 		gravity_system(&world.entities, gravity, dt)
-		collision_system(&world.entities)
+		collision_system(&world.entities, &world.events)
+		event_processing_task(&world.entities, &world.events)
 		camera_control_task(&world, player)
 
 		rl.BeginDrawing()
