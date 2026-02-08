@@ -14,5 +14,5 @@ square_magnitude :: proc {
 }
 
 vec3_from_xz :: proc(v: [2]f32) -> [3]f32 {
-	return { v.x, 0.0, v.y }
+	return {v.x, 0.0, v.y}
 }

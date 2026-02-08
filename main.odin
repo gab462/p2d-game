@@ -31,15 +31,12 @@ main :: proc() {
 
 	enemy := create_entity(
 		&world,
-		Entity{
-			mask = {.Position, .Shape},
-			shape = AABB{size = {3.0, 3.0, 3.0}},
-		},
+		Entity{mask = {.Position, .Shape}, shape = AABB{size = {3.0, 3.0, 3.0}}},
 	)
 
 	ground := create_entity(
 		&world,
-		Entity{
+		Entity {
 			mask = {.Position, .Shape},
 			position = {0.0, -1.0, 0.0},
 			shape = AABB{size = {100.0, 1.0, 100.0}},
@@ -53,12 +50,12 @@ main :: proc() {
 	for !rl.WindowShouldClose() {
 		dt := rl.GetFrameTime()
 
-		input_task(&world)
+		input_task(&world, player)
 		control_system(&world.entities)
-		gravity_system(&world.entities, gravity, dt)
 		movement_system(&world.entities, dt)
+		gravity_system(&world.entities, gravity, dt)
 		collision_system(&world.entities)
-		camera_control_task(&world, dt)
+		camera_control_task(&world, player)
 
 		rl.BeginDrawing()
 

@@ -75,9 +75,8 @@ control_system :: proc(e: ^#soa[dynamic]Entity) {
 	}
 }
 
-input_task :: proc(world: ^World) {
+input_task :: proc(world: ^World, player: uint) {
 	e := &world.entities
-	p1 := 0 // player is always entity 0
 
 	// Movement
 	forward := rl.IsKeyDown(rl.KeyboardKey.W)
@@ -94,32 +93,32 @@ input_task :: proc(world: ^World) {
 		rotated := rl.Vector3RotateByAxisAngle(
 			{direction.x, direction.y, 0.0},
 			{0.0, 0.0, 1.0},
-			e[p1].rotation.x,
+			e[player].rotation.x,
 		)
-		e[p1].controlled.move_intent.direction = rotated.xy
+		e[player].controlled.move_intent.direction = rotated.xy
 	} else {
-		e[p1].controlled.move_intent.direction = {}
+		e[player].controlled.move_intent.direction = {}
 	}
 
 	// Rotation
-	e[p1].controlled.rotate_intent.delta = rl.GetMouseDelta()
+	e[player].controlled.rotate_intent.delta = rl.GetMouseDelta()
 }
 
-camera_control_task :: proc(world: ^World, dt: f32) {
+camera_control_task :: proc(world: ^World, player: uint) {
 	cam := &world.camera
 
 	e := &world.entities
-	p1 := 0 // player is always entity 0
 
-	shape := e[p1].shape.(Cylinder)
+	shape := e[player].shape.(Cylinder)
 
-	head := e[p1].position
+	head := e[player].position
 	head.y += shape.height - shape.radius
 
 	cam.target += head - cam.position
 	cam.position = head
 
-	rotate := e[p1].controlled.rotate_intent.delta * e[p1].controlled.rotate_intent.sensitivity
+	rotate :=
+		e[player].controlled.rotate_intent.delta * e[player].controlled.rotate_intent.sensitivity
 	rl.CameraYaw(cam, -rotate.x, false)
 	rl.CameraPitch(cam, -rotate.y, true, false, false)
 }
