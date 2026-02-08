@@ -43,6 +43,15 @@ main :: proc() {
 		},
 	)
 
+	lava := create_entity(
+		&world,
+		Entity {
+			mask = {.Position, .Shape, .Hurtful},
+			position = {10.0, 0.0, 10.0},
+			shape = Cylinder{radius = 1.0, height = 4.0},
+		},
+	)
+
 	rl.DisableCursor()
 
 	gravity: f32 = 9.8
@@ -55,7 +64,7 @@ main :: proc() {
 		movement_system(&world.entities, dt)
 		gravity_system(&world.entities, gravity, dt)
 		collision_system(&world.entities, &world.events)
-		event_processing_task(&world.entities, &world.events)
+		event_processing_task(&world.entities, &world.events, player)
 		camera_control_task(&world, player)
 
 		rl.BeginDrawing()

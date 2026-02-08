@@ -25,17 +25,13 @@ collision_system :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event) {
 			collision, hit := collide(e[i].position, e[j].position, e[i].shape, e[j].shape)
 
 			if hit {
-				append(events, Collision_Event {
-					data = collision,
-					a = i,
-					b = j,
-				})
+				append(events, Collision_Event{data = collision, a = i, b = j})
 			}
 		}
 	}
 }
 
-event_processing_task :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event) {
+event_processing_task :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event, player: int) {
 	for event in events {
 		switch ev in event {
 		case Collision_Event:
@@ -44,6 +40,11 @@ event_processing_task :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event) 
 			if ev.data.mtv.y > 0.0 && e[ev.a].velocity.y < 0.0 {
 				// hitting ground, cancel gravity
 				e[ev.a].velocity.y = 0.0
+			}
+
+			if ev.a == player && .Hurtful in e[ev.b].mask {
+				// respawn player
+				e[player].position = {0.0, 10.0, 0.0}
 			}
 		}
 	}

@@ -15,7 +15,7 @@ Entity :: struct {
 World :: struct {
 	entities: #soa[dynamic]Entity,
 	camera:   rl.Camera,
-	events: [dynamic]Event,
+	events:   [dynamic]Event,
 }
 
 create_entity :: proc(world: ^World, e: Entity = {}) -> int {

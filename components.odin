@@ -7,6 +7,7 @@ Component :: enum {
 	Shape,
 	Collision_Mask,
 	Controlled,
+	Hurtful,
 }
 
 Mask :: bit_set[Component]
