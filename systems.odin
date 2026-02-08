@@ -13,17 +13,26 @@ movement_system :: proc(e: ^#soa[dynamic]Entity, dt: f32) {
 }
 
 collision_system :: proc(e: ^#soa[dynamic]Entity) {
-	mask: Mask = {.Position, .Shape, .Collision_Mask}
+	mask: Mask = {.Position, .Velocity, .Shape, .Collision_Mask}
 
 	for i := 0; i < len(e) - 1; i += 1 {
 		if !(e[i].mask >= mask) {continue}
 
 		for j := i + 1; j < len(e); j += 1 {
-			if !(e[j].mask >= mask) {continue}
+			if !(e[j].mask >= {.Position, .Shape}) {continue}
 			if e[i].collision_mask & e[j].mask == (Mask{}) {continue}
 
-			collision := collide(e[i].position, e[j].position, e[i].shape, e[j].shape)
 			// TODO: save collision
+			collision, hit := collide(e[i].position, e[j].position, e[i].shape, e[j].shape)
+
+			if hit {
+				e[i].position += collision.mtv
+
+				if collision.mtv.y > 0.0 && e[i].velocity.y < 0.0 {
+					// hitting ground, cancel gravity
+					e[i].velocity.y = 0.0
+				}
+			}
 		}
 	}
 }
@@ -56,14 +65,12 @@ control_system :: proc(e: ^#soa[dynamic]Entity) {
 
 			// velocity instead of position due to non-controlled objects with inertia
 			e[i].velocity.xz = intent.direction * intent.max_speed
-			e[i].controlled.move_intent.direction = {} // consume
 		}
 
 		if .Rotation in e[i].mask {
 			intent := e[i].controlled.rotate_intent
 
 			e[i].rotation += intent.delta * intent.sensitivity
-			e[i].controlled.rotate_intent.delta = {} // consume
 		}
 	}
 }
@@ -90,6 +97,8 @@ input_task :: proc(world: ^World) {
 			e[p1].rotation.x,
 		)
 		e[p1].controlled.move_intent.direction = rotated.xy
+	} else {
+		e[p1].controlled.move_intent.direction = {}
 	}
 
 	// Rotation
@@ -113,4 +122,14 @@ camera_control_task :: proc(world: ^World, dt: f32) {
 	rotate := e[p1].controlled.rotate_intent.delta * e[p1].controlled.rotate_intent.sensitivity
 	rl.CameraYaw(cam, -rotate.x, false)
 	rl.CameraPitch(cam, -rotate.y, true, false, false)
+}
+
+gravity_system :: proc(e: ^#soa[dynamic]Entity, acceleration: f32, dt: f32) {
+	mask := Mask{.Velocity} // TODO: flag for entities affected by gravity
+
+	for i := 0; i < len(e); i += 1 {
+		if !(e[i].mask >= mask) {continue}
+
+		e[i].velocity.y -= acceleration * dt
+	}
 }
