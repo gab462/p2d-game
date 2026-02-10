@@ -15,11 +15,11 @@ main :: proc() {
 	player := create_entity(
 		&world,
 		Entity {
-			mask = {.Position, .Velocity, .Rotation, .Shape, .Controlled, .Collision_Mask},
+			traits = {.Physical, .Dynamic, .Rotation, .Controlled, .Collision},
 			position = {0.0, 10.0, 0.0},
 			shape = Cylinder{radius = 1.0, height = 4.0},
-			controlled = {move_intent = {max_speed = 5.0}, rotate_intent = {sensitivity = 0.01}},
-			collision_mask = {.Position},
+			controls = {move_intent = {max_speed = 5.0}, rotate_intent = {sensitivity = 0.01}},
+			collides_with = {.Physical},
 		},
 	)
 
@@ -31,13 +31,13 @@ main :: proc() {
 
 	enemy := create_entity(
 		&world,
-		Entity{mask = {.Position, .Shape}, shape = AABB{size = {3.0, 3.0, 3.0}}},
+		Entity{traits = {.Physical}, shape = AABB{size = {3.0, 3.0, 3.0}}},
 	)
 
 	ground := create_entity(
 		&world,
 		Entity {
-			mask = {.Position, .Shape},
+			traits = {.Physical},
 			position = {0.0, -1.0, 0.0},
 			shape = AABB{size = {100.0, 1.0, 100.0}},
 		},
@@ -46,7 +46,7 @@ main :: proc() {
 	lava := create_entity(
 		&world,
 		Entity {
-			mask = {.Position, .Shape, .Hurtful},
+			traits = {.Physical, .Damage},
 			position = {10.0, 0.0, 10.0},
 			shape = Cylinder{radius = 1.0, height = 4.0},
 		},

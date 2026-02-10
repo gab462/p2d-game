@@ -4,23 +4,23 @@ import "core:math/linalg"
 import rl "vendor:raylib"
 
 movement_system :: proc(e: ^#soa[dynamic]Entity, dt: f32) {
-	mask: Mask = {.Position, .Velocity}
+	traits: Traits = {.Physical, .Dynamic}
 
 	for i := 0; i < len(e); i += 1 {
-		if !(e[i].mask >= mask) {continue}
+		if !(e[i].traits >= traits) {continue}
 		e[i].position += e[i].velocity * dt
 	}
 }
 
 collision_system :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event) {
-	mask: Mask = {.Position, .Velocity, .Shape, .Collision_Mask}
+	traits: Traits = {.Physical, .Dynamic, .Collision}
 
 	for i := 0; i < len(e) - 1; i += 1 {
-		if !(e[i].mask >= mask) {continue}
+		if !(e[i].traits >= traits) {continue}
 
 		for j := i + 1; j < len(e); j += 1 {
-			if !(e[j].mask >= {.Position, .Shape}) {continue}
-			if e[i].collision_mask & e[j].mask == (Mask{}) {continue}
+			if !(.Physical in e[j].traits) {continue}
+			if e[i].collides_with & e[j].traits == (Traits{}) {continue}
 
 			collision, hit := collide(e[i].position, e[j].position, e[i].shape, e[j].shape)
 
@@ -42,7 +42,7 @@ event_processing_task :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event, 
 				e[ev.a].velocity.y = 0.0
 			}
 
-			if ev.a == player && .Hurtful in e[ev.b].mask {
+			if ev.a == player && .Damage in e[ev.b].traits {
 				// respawn player
 				e[player].position = {0.0, 10.0, 0.0}
 			}
@@ -53,10 +53,10 @@ event_processing_task :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event, 
 }
 
 debug_draw_system :: proc(e: ^#soa[dynamic]Entity) {
-	mask: Mask = {.Position, .Shape}
+	traits: Traits = {.Physical}
 
 	for i := 0; i < len(e); i += 1 {
-		if !(e[i].mask >= mask) {continue}
+		if !(e[i].traits >= traits) {continue}
 
 		switch s in e[i].shape {
 		case Cylinder:
@@ -70,20 +70,20 @@ debug_draw_system :: proc(e: ^#soa[dynamic]Entity) {
 }
 
 control_system :: proc(e: ^#soa[dynamic]Entity) {
-	mask := Mask{.Controlled}
+	traits: Traits = {.Controlled}
 
 	for i := 0; i < len(e); i += 1 {
-		if !(e[i].mask >= mask) {continue}
+		if !(e[i].traits >= traits) {continue}
 
-		if .Velocity in e[i].mask {
-			intent := e[i].controlled.move_intent
+		if .Dynamic in e[i].traits {
+			intent := e[i].controls.move_intent
 
 			// velocity instead of position due to non-controlled objects with inertia
 			e[i].velocity.xz = intent.direction * intent.max_speed
 		}
 
-		if .Rotation in e[i].mask {
-			intent := e[i].controlled.rotate_intent
+		if .Rotation in e[i].traits {
+			intent := e[i].controls.rotate_intent
 
 			e[i].rotation += intent.delta * intent.sensitivity
 		}
@@ -110,13 +110,13 @@ input_task :: proc(world: ^World, player: int) {
 			{0.0, 0.0, 1.0},
 			e[player].rotation.x,
 		)
-		e[player].controlled.move_intent.direction = rotated.xy
+		e[player].controls.move_intent.direction = rotated.xy
 	} else {
-		e[player].controlled.move_intent.direction = {}
+		e[player].controls.move_intent.direction = {}
 	}
 
 	// Rotation
-	e[player].controlled.rotate_intent.delta = rl.GetMouseDelta()
+	e[player].controls.rotate_intent.delta = rl.GetMouseDelta()
 }
 
 camera_control_task :: proc(world: ^World, player: int) {
@@ -132,17 +132,16 @@ camera_control_task :: proc(world: ^World, player: int) {
 	cam.target += head - cam.position
 	cam.position = head
 
-	rotate :=
-		e[player].controlled.rotate_intent.delta * e[player].controlled.rotate_intent.sensitivity
+	rotate := e[player].controls.rotate_intent.delta * e[player].controls.rotate_intent.sensitivity
 	rl.CameraYaw(cam, -rotate.x, false)
 	rl.CameraPitch(cam, -rotate.y, true, false, false)
 }
 
 gravity_system :: proc(e: ^#soa[dynamic]Entity, acceleration: f32, dt: f32) {
-	mask := Mask{.Velocity} // TODO: flag for entities affected by gravity
+	traits: Traits = {.Dynamic}
 
 	for i := 0; i < len(e); i += 1 {
-		if !(e[i].mask >= mask) {continue}
+		if !(e[i].traits >= traits) {continue}
 
 		e[i].velocity.y -= acceleration * dt
 	}

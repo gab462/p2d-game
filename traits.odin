@@ -1,22 +1,15 @@
 package main
 
-Component :: enum {
-	Position,
-	Velocity,
+Trait :: enum {
+	Physical, // Position, Shape
+	Dynamic, // velocity, gravity
 	Rotation,
-	Shape,
-	Collision_Mask,
+	Collision,
 	Controlled,
-	Hurtful,
+	Damage,
 }
 
-Mask :: bit_set[Component]
-
-Position :: [3]f32
-
-Velocity :: [3]f32
-
-Rotation :: [2]f32 // yaw and pitch
+Traits :: bit_set[Trait]
 
 Cylinder :: struct {
 	radius: f32,
@@ -32,8 +25,6 @@ Shape :: union #no_nil {
 	AABB,
 }
 
-Collision_Mask :: Mask
-
 Move_Intent :: struct {
 	max_speed: f32,
 	direction: [2]f32,
@@ -44,7 +35,7 @@ Rotate_Intent :: struct {
 	delta:       [2]f32,
 }
 
-Controlled :: struct {
+Controls :: struct {
 	move_intent:   Move_Intent,
 	rotate_intent: Rotate_Intent,
 }
