@@ -13,19 +13,35 @@ movement_system :: proc(e: ^#soa[dynamic]Entity, dt: f32) {
 }
 
 collision_system :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event) {
-	traits: Traits = {.Physical, .Dynamic, .Collision}
-
 	for i := 0; i < len(e) - 1; i += 1 {
-		if !(e[i].traits >= traits) {continue}
+		if !(.Physical in e[i].traits) {continue}
 
 		for j := i + 1; j < len(e); j += 1 {
 			if !(.Physical in e[j].traits) {continue}
-			if e[i].collides_with & e[j].traits == (Traits{}) {continue}
 
-			collision, hit := collide(e[i].position, e[j].position, e[i].shape, e[j].shape)
+			collider, collided: int
+			if e[i].traits >= {.Dynamic, .Collision} {
+				collider, collided = i, j
+			} else if e[j].traits >= {.Dynamic, .Collision} {
+				collider, collided = j, i
+			} else {
+				// both objects are static and/or do not collide
+				continue
+			}
+
+			if e[collider].collides_with & e[collided].traits == (Traits{}) {
+				continue
+			}
+
+			collision, hit := collide(
+				e[collider].position,
+				e[collided].position,
+				e[collider].shape,
+				e[collided].shape,
+			)
 
 			if hit {
-				append(events, Collision_Event{data = collision, a = i, b = j})
+				append(events, Collision_Event{data = collision, a = collider, b = collided})
 			}
 		}
 	}
