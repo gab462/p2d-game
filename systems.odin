@@ -56,6 +56,7 @@ event_processing_task :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event, 
 			if ev.data.mtv.y > 0.0 && e[ev.a].velocity.y < 0.0 {
 				// hitting ground, cancel gravity
 				e[ev.a].velocity.y = 0.0
+				e[ev.a].controls.jump_intent.count = e[ev.a].controls.jump_intent.max_count
 			}
 
 			if ev.a == player && .Damage in e[ev.b].traits {
@@ -92,10 +93,24 @@ control_system :: proc(e: ^#soa[dynamic]Entity) {
 		if !(e[i].traits >= traits) {continue}
 
 		if .Dynamic in e[i].traits {
-			intent := e[i].controls.move_intent
+			move := e[i].controls.move_intent
 
 			// velocity instead of position due to non-controlled objects with inertia
-			e[i].velocity.xz = intent.direction * intent.max_speed
+			e[i].velocity.xz = move.direction * move.max_speed
+
+			jump := e[i].controls.jump_intent
+			if jump.jumping {
+				if jump.count == 0 {
+					// tried to jump with no jumps left
+					continue
+				}
+
+				if jump.count > 0 {
+					e[i].controls.jump_intent.count -= 1
+				}
+
+				e[i].velocity.y = jump.force
+			}
 		}
 
 		if .Rotation in e[i].traits {
@@ -133,6 +148,13 @@ input_task :: proc(world: ^World, player: int) {
 
 	// Rotation
 	e[player].controls.rotate_intent.delta = rl.GetMouseDelta()
+
+	// Jumping
+	if rl.IsKeyPressed(rl.KeyboardKey.SPACE) {
+		e[player].controls.jump_intent.jumping = true
+	} else {
+		e[player].controls.jump_intent.jumping = false
+	}
 }
 
 camera_control_task :: proc(world: ^World, player: int) {

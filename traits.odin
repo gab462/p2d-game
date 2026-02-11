@@ -2,7 +2,7 @@ package main
 
 Trait :: enum {
 	Physical, // Position, Shape
-	Dynamic, // velocity, gravity
+	Dynamic, // Velocity, Gravity
 	Rotation,
 	Collision,
 	Controlled,
@@ -35,7 +35,15 @@ Rotate_Intent :: struct {
 	delta:       [2]f32,
 }
 
+Jump_Intent :: struct {
+	force: f32,
+	max_count: int,
+	count: int,
+	jumping: bool,
+}
+
 Controls :: struct {
 	move_intent:   Move_Intent,
 	rotate_intent: Rotate_Intent,
+	jump_intent: Jump_Intent,
 }

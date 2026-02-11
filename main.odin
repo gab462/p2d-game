@@ -18,7 +18,7 @@ main :: proc() {
 			traits = {.Physical, .Dynamic, .Rotation, .Controlled, .Collision},
 			position = {0.0, 10.0, 0.0},
 			shape = Cylinder{radius = 1.0, height = 4.0},
-			controls = {move_intent = {max_speed = 5.0}, rotate_intent = {sensitivity = 0.01}},
+			controls = {move_intent = {max_speed = 5.0}, rotate_intent = {sensitivity = 0.01}, jump_intent = {force = 10.0, max_count = 2}},
 			collides_with = {.Physical},
 		},
 	)
@@ -54,15 +54,15 @@ main :: proc() {
 
 	rl.DisableCursor()
 
-	gravity: f32 = 9.8
+	gravity: f32 = 9.8 * 2
 
 	for !rl.WindowShouldClose() {
 		dt := rl.GetFrameTime()
 
 		input_task(&world, player)
+		gravity_system(&world.entities, gravity, dt)
 		control_system(&world.entities)
 		movement_system(&world.entities, dt)
-		gravity_system(&world.entities, gravity, dt)
 		collision_system(&world.entities, &world.events)
 		event_processing_task(&world.entities, &world.events, player)
 		camera_control_task(&world, player)
