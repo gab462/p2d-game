@@ -36,14 +36,14 @@ Rotate_Intent :: struct {
 }
 
 Jump_Intent :: struct {
-	force: f32,
+	force:     f32,
 	max_count: int,
-	count: int,
-	jumping: bool,
+	count:     int,
+	jumping:   bool,
 }
 
 Controls :: struct {
 	move_intent:   Move_Intent,
 	rotate_intent: Rotate_Intent,
-	jump_intent: Jump_Intent,
+	jump_intent:   Jump_Intent,
 }
