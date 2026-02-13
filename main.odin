@@ -1,6 +1,5 @@
 package main
 
-import "core:math"
 import rl "vendor:raylib"
 
 main :: proc() {
@@ -26,9 +25,6 @@ main :: proc() {
 
 	player_shape := world.entities[player].shape.(Cylinder)
 	rl.CameraMoveUp(&world.camera, player_shape.height - player_shape.radius)
-
-	cam_fw := rl.GetCameraForward(&world.camera)
-	world.entities[player].rotation = math.atan2(cam_fw.z, cam_fw.x)
 
 	enemy := create_entity(
 		&world,
@@ -68,7 +64,7 @@ main :: proc() {
 		event_processing_task(&world.entities, &world.events, player)
 		camera_control_task(&world, player)
 
-		debug_stats_task(&world.entities)
+		debug_stats_task(&world.entities, player)
 
 		rl.BeginDrawing()
 

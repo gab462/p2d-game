@@ -91,9 +91,24 @@ debug_draw_system :: proc(e: ^#soa[dynamic]Entity) {
 	}
 }
 
-debug_stats_task :: proc(e: ^#soa[dynamic]Entity) {
-	rl.DrawFPS(0, 0)
-	rl.DrawText(fmt.ctprintf("Max Entities: %v", len(e)), 0, 20, 20, rl.LIME)
+debug_stats_task :: proc(e: ^#soa[dynamic]Entity, player: int) {
+	x: i32 = 5
+	y: i32 = 0
+	h: i32 = 20
+
+	rl.DrawFPS(x, y)
+	y += h
+
+	rl.DrawText(fmt.ctprintf("Max Entities: %v", len(e)), x, y, 20, rl.LIME)
+	y += h
+
+	pos := e[player].position
+	coords := [3]int{int(pos.x), int(pos.y), int(pos.z)}
+	rl.DrawText(fmt.ctprintf("Coords: %v", coords), x, y, 20, rl.LIME)
+	y += h
+
+	rl.DrawText(fmt.ctprintf("Rotation: %v", e[player].rotation), x, y, 20, rl.LIME)
+	y += h
 }
 
 control_system :: proc(e: ^#soa[dynamic]Entity) {
@@ -135,24 +150,24 @@ input_task :: proc(world: ^World, player: int) {
 	right := rl.IsKeyDown(rl.KeyboardKey.D)
 	left := rl.IsKeyDown(rl.KeyboardKey.A)
 
-	direction := [2]f32{f32(int(forward)) - f32(int(backward)), f32(int(right)) - f32(int(left))}
+	direction := [3]f32 {
+		f32(int(left)) - f32(int(right)),
+		0.0,
+		f32(int(forward)) - f32(int(backward)),
+	}
 
-	if (direction.y != 0.0 || direction.x != 0.0) {
+	if (direction.x != 0.0 || direction.z != 0.0) {
 		direction = linalg.normalize(direction)
 
 		// rotate to camera angle
-		rotated := rl.Vector3RotateByAxisAngle(
-			{direction.x, direction.y, 0.0},
-			{0.0, 0.0, 1.0},
-			e[player].rotation,
-		)
-		e[player].controls.move_intent.direction = rotated.xy
+		rotated := rl.Vector3RotateByAxisAngle(direction, {0.0, 1.0, 0.0}, e[player].rotation)
+		e[player].controls.move_intent.direction = rotated.xz
 	} else {
 		e[player].controls.move_intent.direction = {}
 	}
 
 	// Rotation
-	e[player].rotation += rl.GetMouseDelta().x * world.mouse_sensitivity
+	e[player].rotation -= rl.GetMouseDelta().x * world.mouse_sensitivity
 
 	// Jumping
 	if rl.IsKeyPressed(rl.KeyboardKey.SPACE) {
@@ -175,9 +190,9 @@ camera_control_task :: proc(world: ^World, player: int) {
 	cam.target += head - cam.position
 	cam.position = head
 
-	rotate := rl.GetMouseDelta() * world.mouse_sensitivity
-	rl.CameraYaw(cam, -rotate.x, false)
-	rl.CameraPitch(cam, -rotate.y, true, false, false)
+	rotate := rl.GetMouseDelta() * -1 * world.mouse_sensitivity
+	rl.CameraYaw(cam, rotate.x, false)
+	rl.CameraPitch(cam, rotate.y, true, false, false)
 }
 
 gravity_system :: proc(e: ^#soa[dynamic]Entity, acceleration: f32, dt: f32) {

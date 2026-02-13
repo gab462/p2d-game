@@ -39,6 +39,6 @@ Jump_Intent :: struct {
 }
 
 Controls :: struct {
-	move_intent:   Move_Intent,
-	jump_intent:   Jump_Intent,
+	move_intent: Move_Intent,
+	jump_intent: Jump_Intent,
 }
