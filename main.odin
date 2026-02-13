@@ -4,9 +4,7 @@ import "core:math"
 import rl "vendor:raylib"
 
 main :: proc() {
-	world: World = {
-		camera = {target = {0.0, 0.0, 1.0}, up = {0.0, 1.0, 0.0}, fovy = 45.0},
-	}
+	world := create_world()
 	defer destroy_world(world)
 
 	rl.InitWindow(800, 600, "p2d-game")

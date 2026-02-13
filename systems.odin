@@ -7,6 +7,7 @@ movement_system :: proc(e: ^#soa[dynamic]Entity, dt: f32) {
 	traits: Traits = {.Physical, .Dynamic}
 
 	for i := 0; i < len(e); i += 1 {
+		if .Inactive in e[i].traits {continue}
 		if !(e[i].traits >= traits) {continue}
 		e[i].position += e[i].velocity * dt
 	}
@@ -14,9 +15,11 @@ movement_system :: proc(e: ^#soa[dynamic]Entity, dt: f32) {
 
 collision_system :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event) {
 	for i := 0; i < len(e) - 1; i += 1 {
+		if .Inactive in e[i].traits {continue}
 		if !(.Physical in e[i].traits) {continue}
 
 		for j := i + 1; j < len(e); j += 1 {
+			if .Inactive in e[j].traits {continue}
 			if !(.Physical in e[j].traits) {continue}
 
 			collider, collided: int
@@ -73,6 +76,7 @@ debug_draw_system :: proc(e: ^#soa[dynamic]Entity) {
 	traits: Traits = {.Physical}
 
 	for i := 0; i < len(e); i += 1 {
+		if .Inactive in e[i].traits {continue}
 		if !(e[i].traits >= traits) {continue}
 
 		switch s in e[i].shape {
@@ -90,6 +94,7 @@ control_system :: proc(e: ^#soa[dynamic]Entity) {
 	traits: Traits = {.Controlled}
 
 	for i := 0; i < len(e); i += 1 {
+		if .Inactive in e[i].traits {continue}
 		if !(e[i].traits >= traits) {continue}
 
 		if .Dynamic in e[i].traits {
@@ -179,6 +184,7 @@ gravity_system :: proc(e: ^#soa[dynamic]Entity, acceleration: f32, dt: f32) {
 	traits: Traits = {.Dynamic}
 
 	for i := 0; i < len(e); i += 1 {
+		if .Inactive in e[i].traits {continue}
 		if !(e[i].traits >= traits) {continue}
 
 		e[i].velocity.y -= acceleration * dt

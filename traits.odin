@@ -1,6 +1,7 @@
 package main
 
 Trait :: enum {
+	Inactive,
 	Physical, // Position, Shape
 	Dynamic, // Velocity, Gravity
 	Rotation,
