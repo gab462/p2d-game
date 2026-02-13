@@ -83,5 +83,7 @@ main :: proc() {
 		rl.EndMode3D()
 
 		rl.EndDrawing()
+
+		free_all(context.temp_allocator)
 	}
 }
