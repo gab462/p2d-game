@@ -123,12 +123,6 @@ control_system :: proc(e: ^#soa[dynamic]Entity) {
 				e[i].velocity.y = jump.force
 			}
 		}
-
-		if .Rotation in e[i].traits {
-			intent := e[i].controls.rotate_intent
-
-			e[i].rotation += intent.delta * intent.sensitivity
-		}
 	}
 }
 
@@ -150,7 +144,7 @@ input_task :: proc(world: ^World, player: int) {
 		rotated := rl.Vector3RotateByAxisAngle(
 			{direction.x, direction.y, 0.0},
 			{0.0, 0.0, 1.0},
-			e[player].rotation.x,
+			e[player].rotation,
 		)
 		e[player].controls.move_intent.direction = rotated.xy
 	} else {
@@ -158,7 +152,7 @@ input_task :: proc(world: ^World, player: int) {
 	}
 
 	// Rotation
-	e[player].controls.rotate_intent.delta = rl.GetMouseDelta()
+	e[player].rotation += rl.GetMouseDelta().x * world.mouse_sensitivity
 
 	// Jumping
 	if rl.IsKeyPressed(rl.KeyboardKey.SPACE) {
@@ -181,7 +175,7 @@ camera_control_task :: proc(world: ^World, player: int) {
 	cam.target += head - cam.position
 	cam.position = head
 
-	rotate := e[player].controls.rotate_intent.delta * e[player].controls.rotate_intent.sensitivity
+	rotate := rl.GetMouseDelta() * world.mouse_sensitivity
 	rl.CameraYaw(cam, -rotate.x, false)
 	rl.CameraPitch(cam, -rotate.y, true, false, false)
 }

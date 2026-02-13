@@ -6,7 +6,7 @@ Entity :: struct {
 	traits:        Traits,
 	position:      [3]f32,
 	velocity:      [3]f32,
-	rotation:      [2]f32, // yaw and pitch
+	rotation:      f32, // yaw only
 	shape:         Shape,
 	collides_with: Traits,
 	controls:      Controls,
@@ -14,15 +14,17 @@ Entity :: struct {
 }
 
 World :: struct {
-	entities:   #soa[dynamic]Entity,
-	camera:     rl.Camera,
-	events:     [dynamic]Event,
-	first_free: int,
+	entities:          #soa[dynamic]Entity,
+	camera:            rl.Camera,
+	mouse_sensitivity: f32,
+	events:            [dynamic]Event,
+	first_free:        int,
 }
 
 create_world :: proc() -> World {
 	world: World = {
 		camera = {target = {0.0, 0.0, 1.0}, up = {0.0, 1.0, 0.0}, fovy = 45.0},
+		mouse_sensitivity = 0.01,
 	}
 
 	// nil entity

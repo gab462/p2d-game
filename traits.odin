@@ -31,11 +31,6 @@ Move_Intent :: struct {
 	direction: [2]f32,
 }
 
-Rotate_Intent :: struct {
-	sensitivity: f32,
-	delta:       [2]f32,
-}
-
 Jump_Intent :: struct {
 	force:     f32,
 	max_count: int,
@@ -45,6 +40,5 @@ Jump_Intent :: struct {
 
 Controls :: struct {
 	move_intent:   Move_Intent,
-	rotate_intent: Rotate_Intent,
 	jump_intent:   Jump_Intent,
 }

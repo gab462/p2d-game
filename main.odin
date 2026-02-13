@@ -18,7 +18,6 @@ main :: proc() {
 			shape = Cylinder{radius = 1.0, height = 4.0},
 			controls = {
 				move_intent = {max_speed = 5.0},
-				rotate_intent = {sensitivity = 0.01},
 				jump_intent = {force = 10.0, max_count = 2},
 			},
 			collides_with = {.Physical},
