@@ -1,5 +1,6 @@
 package main
 
+import "core:fmt"
 import "core:math/linalg"
 import rl "vendor:raylib"
 
@@ -88,6 +89,11 @@ debug_draw_system :: proc(e: ^#soa[dynamic]Entity) {
 			rl.DrawCubeWiresV(e[i].position + [3]f32{0.0, s.size.y / 2.0, 0.0}, s.size, rl.GREEN)
 		}
 	}
+}
+
+debug_stats_task :: proc(e: ^#soa[dynamic]Entity) {
+	rl.DrawFPS(0, 0)
+	rl.DrawText(fmt.ctprintf("Max Entities: %v", len(e)), 0, 20, 20, rl.LIME)
 }
 
 control_system :: proc(e: ^#soa[dynamic]Entity) {

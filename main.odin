@@ -69,6 +69,8 @@ main :: proc() {
 		event_processing_task(&world.entities, &world.events, player)
 		camera_control_task(&world, player)
 
+		debug_stats_task(&world.entities)
+
 		rl.BeginDrawing()
 
 		rl.ClearBackground(rl.BLACK)
