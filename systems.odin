@@ -17,11 +17,11 @@ movement_system :: proc(e: ^#soa[dynamic]Entity, dt: f32) {
 collision_system :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event) {
 	for i := 0; i < len(e) - 1; i += 1 {
 		if .Inactive in e[i].traits {continue}
-		if !(.Physical in e[i].traits) {continue}
+		if .Physical not_in e[i].traits {continue}
 
 		for j := i + 1; j < len(e); j += 1 {
 			if .Inactive in e[j].traits {continue}
-			if !(.Physical in e[j].traits) {continue}
+			if .Physical not_in e[j].traits {continue}
 
 			collider, collided: int
 			if e[i].traits >= {.Dynamic, .Collision} {
