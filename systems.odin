@@ -4,55 +4,55 @@ import "core:fmt"
 import "core:math/linalg"
 import rl "vendor:raylib"
 
-movement_system :: proc(e: ^#soa[dynamic]Entity, dt: f32) {
-	traits: Traits = {.Physical, .Dynamic}
+System_Proc_Type :: proc(e: ^#soa[dynamic]Entity, w: ^World, idx: int)
 
-	for i := 0; i < len(e); i += 1 {
-		if .Inactive in e[i].traits {continue}
-		if !(e[i].traits >= traits) {continue}
-		e[i].position += e[i].velocity * dt
+run_system :: proc(w: ^World, func: System_Proc_Type, traits: Traits) {
+	for i := 0; i < len(w.entities); i += 1 {
+		if .Inactive in w.entities[i].traits {continue}
+		if !(w.entities[i].traits >= traits) {continue}
+
+		func(&w.entities, w, i)
 	}
 }
 
-collision_system :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event) {
-	for i := 0; i < len(e) - 1; i += 1 {
-		if .Inactive in e[i].traits {continue}
-		if .Physical not_in e[i].traits {continue}
+movement_system :: proc(e: ^#soa[dynamic]Entity, world: ^World, i: int) {
+	e[i].position += e[i].velocity * world.dt
+}
 
-		for j := i + 1; j < len(e); j += 1 {
-			if .Inactive in e[j].traits {continue}
-			if .Physical not_in e[j].traits {continue}
+collision_system :: proc(e: ^#soa[dynamic]Entity, world: ^World, i: int) {
+	for j := i + 1; j < len(e); j += 1 {
+		if .Inactive in e[j].traits {continue}
+		if .Physical not_in e[j].traits {continue}
 
-			collider, collided: int
-			if e[i].traits >= {.Dynamic, .Collision} {
-				collider, collided = i, j
-			} else if e[j].traits >= {.Dynamic, .Collision} {
-				collider, collided = j, i
-			} else {
-				// both objects are static and/or do not collide
-				continue
-			}
+		collider, collided: int
+		if e[i].traits >= {.Dynamic, .Collision} {
+			collider, collided = i, j
+		} else if e[j].traits >= {.Dynamic, .Collision} {
+			collider, collided = j, i
+		} else {
+			// both objects are static and/or do not collide
+			continue
+		}
 
-			if e[collider].collides_with & e[collided].traits == (Traits{}) {
-				continue
-			}
+		if e[collider].collides_with & e[collided].traits == (Traits{}) {
+			continue
+		}
 
-			collision, hit := collide(
-				e[collider].position,
-				e[collided].position,
-				e[collider].shape,
-				e[collided].shape,
-			)
+		collision, hit := collide(
+			e[collider].position,
+			e[collided].position,
+			e[collider].shape,
+			e[collided].shape,
+		)
 
-			if hit {
-				append(events, Collision_Event{data = collision, a = collider, b = collided})
-			}
+		if hit {
+			append(&world.events, Collision_Event{data = collision, a = collider, b = collided})
 		}
 	}
 }
 
-event_processing_task :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event, player: int) {
-	for event in events {
+event_processing_task :: proc(e: ^#soa[dynamic]Entity, world: ^World) {
+	for event in world.events {
 		switch ev in event {
 		case Collision_Event:
 			e[ev.a].position += ev.data.mtv
@@ -63,9 +63,9 @@ event_processing_task :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event, 
 				e[ev.a].jumps.remaining = e[ev.a].jumps.count
 			}
 
-			if ev.a == player && .Damage in e[ev.b].traits {
+			if ev.a == world.player && .Damage in e[ev.b].traits {
 				// respawn player
-				e[player].position = {0.0, 10.0, 0.0}
+				e[world.player].position = {0.0, 10.0, 0.0}
 			}
 		case Jump_Event:
 			jump := e[ev.entity].jumps
@@ -82,40 +82,33 @@ event_processing_task :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event, 
 		}
 	}
 
-	clear(events)
+	clear(&world.events)
 }
 
-debug_draw_system :: proc(e: ^#soa[dynamic]Entity) {
-	traits: Traits = {.Physical}
+debug_draw_system :: proc(e: ^#soa[dynamic]Entity, world: ^World, i: int) {
+	switch s in e[i].shape {
+	case Cylinder:
+		pos := e[i].position
 
-	for i := 0; i < len(e); i += 1 {
-		if .Inactive in e[i].traits {continue}
-		if !(e[i].traits >= traits) {continue}
-
-		switch s in e[i].shape {
-		case Cylinder:
-			pos := e[i].position
-
-			rl.DrawCylinderWires(pos, s.radius, s.radius, s.height, 8, rl.GREEN)
-		case AABB:
-			rl.DrawCubeWiresV(e[i].position + [3]f32{0.0, s.size.y / 2.0, 0.0}, s.size, rl.GREEN)
-		}
+		rl.DrawCylinderWires(pos, s.radius, s.radius, s.height, 8, rl.GREEN)
+	case AABB:
+		rl.DrawCubeWiresV(e[i].position + [3]f32{0.0, s.size.y / 2.0, 0.0}, s.size, rl.GREEN)
 	}
 }
 
-debug_stats_task :: proc(e: ^#soa[dynamic]Entity, player: int) {
+debug_stats_task :: proc(e: ^#soa[dynamic]Entity, world: ^World) {
 	x, y, h: i32 = 5, 0, 20
 
 	rl.DrawFPS(x, y); y += h
 	rl.DrawText(fmt.ctprintf("Max Entities: %v", len(e)), x, y, 20, rl.LIME); y += h
-	pos := e[player].position
+	pos := e[world.player].position
 	coords := [3]int{int(pos.x), int(pos.y), int(pos.z)}
 	rl.DrawText(fmt.ctprintf("Coords: %v", coords), x, y, 20, rl.LIME); y += h
-	rl.DrawText(fmt.ctprintf("Rotation: %v", e[player].rotation), x, y, 20, rl.LIME); y += h
+	rl.DrawText(fmt.ctprintf("Rotation: %v", e[world.player].rotation), x, y, 20, rl.LIME); y += h
 }
 
-input_task :: proc(world: ^World, events: ^[dynamic]Event, player: int) {
-	e := &world.entities
+input_task :: proc(e: ^#soa[dynamic]Entity, world: ^World) {
+	p1 := world.player
 
 	// Movement
 	forward := rl.IsKeyDown(rl.KeyboardKey.W)
@@ -133,29 +126,31 @@ input_task :: proc(world: ^World, events: ^[dynamic]Event, player: int) {
 		direction = linalg.normalize(direction)
 
 		// rotate to camera angle
-		rotated := rl.Vector3RotateByAxisAngle(direction, {0.0, 1.0, 0.0}, e[player].rotation)
-		e[player].velocity.xz = (rotated * e[player].max_speed).xz
+		rotated := rl.Vector3RotateByAxisAngle(
+			direction,
+			{0.0, 1.0, 0.0},
+			e[world.player].rotation,
+		)
+		e[p1].velocity.xz = (rotated * e[p1].max_speed).xz
 	} else {
-		e[player].velocity.xz = [2]f32{}
+		e[p1].velocity.xz = [2]f32{}
 	}
 
 	// Rotation
-	e[player].rotation -= rl.GetMouseDelta().x * world.mouse_sensitivity
+	e[p1].rotation -= rl.GetMouseDelta().x * world.mouse_sensitivity
 
 	// Jumping
 	if rl.IsKeyPressed(rl.KeyboardKey.SPACE) {
-		append(events, Jump_Event{entity = player})
+		append(&world.events, Jump_Event{entity = p1})
 	}
 }
 
-camera_control_task :: proc(world: ^World, player: int) {
+camera_control_task :: proc(e: ^#soa[dynamic]Entity, world: ^World) {
 	cam := &world.camera
 
-	e := &world.entities
+	shape := e[world.player].shape.(Cylinder)
 
-	shape := e[player].shape.(Cylinder)
-
-	head := e[player].position
+	head := e[world.player].position
 	head.y += shape.height - shape.radius
 
 	cam.target += head - cam.position
@@ -166,13 +161,6 @@ camera_control_task :: proc(world: ^World, player: int) {
 	rl.CameraPitch(cam, rotate.y, true, false, false)
 }
 
-gravity_system :: proc(e: ^#soa[dynamic]Entity, acceleration: f32, dt: f32) {
-	traits: Traits = {.Dynamic}
-
-	for i := 0; i < len(e); i += 1 {
-		if .Inactive in e[i].traits {continue}
-		if !(e[i].traits >= traits) {continue}
-
-		e[i].velocity.y -= acceleration * dt
-	}
+gravity_system :: proc(e: ^#soa[dynamic]Entity, world: ^World, i: int) {
+	e[i].velocity.y -= 9.8 * 2 * world.dt
 }

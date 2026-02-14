@@ -9,7 +9,7 @@ main :: proc() {
 	rl.InitWindow(800, 600, "p2d-game")
 	defer rl.CloseWindow()
 
-	player := create_entity(
+	world.player = create_entity(
 		&world,
 		Entity {
 			traits = {.Physical, .Dynamic, .Rotation, .Controlled, .Collision},
@@ -21,7 +21,7 @@ main :: proc() {
 		},
 	)
 
-	player_shape := world.entities[player].shape.(Cylinder)
+	player_shape := world.entities[world.player].shape.(Cylinder)
 	rl.CameraMoveUp(&world.camera, player_shape.height - player_shape.radius)
 
 	enemy := create_entity(
@@ -49,19 +49,16 @@ main :: proc() {
 
 	rl.DisableCursor()
 
-	gravity: f32 = 9.8 * 2
-
 	for !rl.WindowShouldClose() {
-		dt := rl.GetFrameTime()
+		world.dt = rl.GetFrameTime()
 
-		input_task(&world, &world.events, player)
-		gravity_system(&world.entities, gravity, dt)
-		movement_system(&world.entities, dt)
-		collision_system(&world.entities, &world.events)
-		event_processing_task(&world.entities, &world.events, player)
-		camera_control_task(&world, player)
-
-		debug_stats_task(&world.entities, player)
+		input_task(&world.entities, &world)
+		run_system(&world, gravity_system, {.Dynamic})
+		run_system(&world, movement_system, {.Physical, .Dynamic})
+		run_system(&world, collision_system, {.Physical})
+		event_processing_task(&world.entities, &world)
+		camera_control_task(&world.entities, &world)
+		debug_stats_task(&world.entities, &world)
 
 		rl.BeginDrawing()
 
@@ -70,7 +67,7 @@ main :: proc() {
 		rl.BeginMode3D(world.camera)
 		rl.DrawGrid(100, 1)
 
-		debug_draw_system(&world.entities)
+		run_system(&world, debug_draw_system, {.Physical})
 
 		rl.EndMode3D()
 

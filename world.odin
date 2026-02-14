@@ -16,6 +16,8 @@ Entity :: struct {
 
 World :: struct {
 	entities:          #soa[dynamic]Entity,
+	player:            int,
+	dt:                f32,
 	camera:            rl.Camera,
 	mouse_sensitivity: f32,
 	events:            [dynamic]Event,
