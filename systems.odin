@@ -60,13 +60,25 @@ event_processing_task :: proc(e: ^#soa[dynamic]Entity, events: ^[dynamic]Event, 
 			if ev.data.mtv.y > 0.0 && e[ev.a].velocity.y < 0.0 {
 				// hitting ground, cancel gravity
 				e[ev.a].velocity.y = 0.0
-				e[ev.a].controls.jump_intent.count = e[ev.a].controls.jump_intent.max_count
+				e[ev.a].jumps.remaining = e[ev.a].jumps.count
 			}
 
 			if ev.a == player && .Damage in e[ev.b].traits {
 				// respawn player
 				e[player].position = {0.0, 10.0, 0.0}
 			}
+		case Jump_Event:
+			jump := e[ev.entity].jumps
+			if jump.remaining == 0 {
+				// tried to jump with no jumps left
+				continue
+			}
+
+			if jump.remaining > 0 {
+				e[ev.entity].jumps.remaining -= 1
+			}
+
+			e[ev.entity].velocity.y = jump.force
 		}
 	}
 
@@ -111,37 +123,7 @@ debug_stats_task :: proc(e: ^#soa[dynamic]Entity, player: int) {
 	y += h
 }
 
-control_system :: proc(e: ^#soa[dynamic]Entity) {
-	traits: Traits = {.Controlled}
-
-	for i := 0; i < len(e); i += 1 {
-		if .Inactive in e[i].traits {continue}
-		if !(e[i].traits >= traits) {continue}
-
-		if .Dynamic in e[i].traits {
-			move := e[i].controls.move_intent
-
-			// velocity instead of position due to non-controlled objects with inertia
-			e[i].velocity.xz = move.direction * move.max_speed
-
-			jump := e[i].controls.jump_intent
-			if jump.jumping {
-				if jump.count == 0 {
-					// tried to jump with no jumps left
-					continue
-				}
-
-				if jump.count > 0 {
-					e[i].controls.jump_intent.count -= 1
-				}
-
-				e[i].velocity.y = jump.force
-			}
-		}
-	}
-}
-
-input_task :: proc(world: ^World, player: int) {
+input_task :: proc(world: ^World, events: ^[dynamic]Event, player: int) {
 	e := &world.entities
 
 	// Movement
@@ -161,9 +143,9 @@ input_task :: proc(world: ^World, player: int) {
 
 		// rotate to camera angle
 		rotated := rl.Vector3RotateByAxisAngle(direction, {0.0, 1.0, 0.0}, e[player].rotation)
-		e[player].controls.move_intent.direction = rotated.xz
+		e[player].velocity.xz = (rotated * e[player].max_speed).xz
 	} else {
-		e[player].controls.move_intent.direction = {}
+		e[player].velocity.xz = [2]f32{}
 	}
 
 	// Rotation
@@ -171,9 +153,7 @@ input_task :: proc(world: ^World, player: int) {
 
 	// Jumping
 	if rl.IsKeyPressed(rl.KeyboardKey.SPACE) {
-		e[player].controls.jump_intent.jumping = true
-	} else {
-		e[player].controls.jump_intent.jumping = false
+		append(events, Jump_Event{entity = player})
 	}
 }
 

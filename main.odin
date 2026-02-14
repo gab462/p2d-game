@@ -14,11 +14,9 @@ main :: proc() {
 		Entity {
 			traits = {.Physical, .Dynamic, .Rotation, .Controlled, .Collision},
 			position = {0.0, 10.0, 0.0},
+			max_speed = 5.0,
 			shape = Cylinder{radius = 1.0, height = 4.0},
-			controls = {
-				move_intent = {max_speed = 5.0},
-				jump_intent = {force = 10.0, max_count = 2},
-			},
+			jumps = {force = 10.0, count = 2},
 			collides_with = {.Physical},
 		},
 	)
@@ -56,9 +54,8 @@ main :: proc() {
 	for !rl.WindowShouldClose() {
 		dt := rl.GetFrameTime()
 
-		input_task(&world, player)
+		input_task(&world, &world.events, player)
 		gravity_system(&world.entities, gravity, dt)
-		control_system(&world.entities)
 		movement_system(&world.entities, dt)
 		collision_system(&world.entities, &world.events)
 		event_processing_task(&world.entities, &world.events, player)

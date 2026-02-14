@@ -6,10 +6,11 @@ Entity :: struct {
 	traits:        Traits,
 	position:      [3]f32,
 	velocity:      [3]f32,
+	max_speed:     f32,
 	rotation:      f32, // yaw only
 	shape:         Shape,
 	collides_with: Traits,
-	controls:      Controls,
+	jumps:         Jumps,
 	next_free:     int, // intrusive list
 }
 

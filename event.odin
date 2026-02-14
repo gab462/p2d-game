@@ -5,6 +5,11 @@ Collision_Event :: struct {
 	a, b: int,
 }
 
+Jump_Event :: struct {
+	entity: int,
+}
+
 Event :: union {
 	Collision_Event,
+	Jump_Event,
 }

@@ -26,19 +26,8 @@ Shape :: union #no_nil {
 	AABB,
 }
 
-Move_Intent :: struct {
-	max_speed: f32,
-	direction: [2]f32,
-}
-
-Jump_Intent :: struct {
-	force:     f32,
-	max_count: int,
+Jumps :: struct {
 	count:     int,
-	jumping:   bool,
-}
-
-Controls :: struct {
-	move_intent: Move_Intent,
-	jump_intent: Jump_Intent,
+	remaining: int,
+	force:     f32,
 }
