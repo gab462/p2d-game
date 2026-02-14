@@ -104,23 +104,14 @@ debug_draw_system :: proc(e: ^#soa[dynamic]Entity) {
 }
 
 debug_stats_task :: proc(e: ^#soa[dynamic]Entity, player: int) {
-	x: i32 = 5
-	y: i32 = 0
-	h: i32 = 20
+	x, y, h: i32 = 5, 0, 20
 
-	rl.DrawFPS(x, y)
-	y += h
-
-	rl.DrawText(fmt.ctprintf("Max Entities: %v", len(e)), x, y, 20, rl.LIME)
-	y += h
-
+	rl.DrawFPS(x, y); y += h
+	rl.DrawText(fmt.ctprintf("Max Entities: %v", len(e)), x, y, 20, rl.LIME); y += h
 	pos := e[player].position
 	coords := [3]int{int(pos.x), int(pos.y), int(pos.z)}
-	rl.DrawText(fmt.ctprintf("Coords: %v", coords), x, y, 20, rl.LIME)
-	y += h
-
-	rl.DrawText(fmt.ctprintf("Rotation: %v", e[player].rotation), x, y, 20, rl.LIME)
-	y += h
+	rl.DrawText(fmt.ctprintf("Coords: %v", coords), x, y, 20, rl.LIME); y += h
+	rl.DrawText(fmt.ctprintf("Rotation: %v", e[player].rotation), x, y, 20, rl.LIME); y += h
 }
 
 input_task :: proc(world: ^World, events: ^[dynamic]Event, player: int) {
