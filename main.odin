@@ -26,13 +26,13 @@ main :: proc() {
 
 	enemy := create_entity(
 		&world,
-		Entity{traits = {.Physical}, shape = AABB{size = {3.0, 3.0, 3.0}}},
+		Entity{traits = {.Physical, .Collision}, shape = AABB{size = {3.0, 3.0, 3.0}}},
 	)
 
 	ground := create_entity(
 		&world,
 		Entity {
-			traits = {.Physical},
+			traits = {.Physical, .Collision},
 			position = {0.0, -1.0, 0.0},
 			shape = AABB{size = {100.0, 1.0, 100.0}},
 		},
@@ -41,7 +41,7 @@ main :: proc() {
 	lava := create_entity(
 		&world,
 		Entity {
-			traits = {.Physical, .Damage},
+			traits = {.Physical, .Collision, .Damage},
 			position = {10.0, 0.0, 10.0},
 			shape = Cylinder{radius = 1.0, height = 4.0},
 		},
@@ -55,7 +55,8 @@ main :: proc() {
 		input_task(&world.entities, &world)
 		run_system(&world, gravity_system, {.Dynamic})
 		run_system(&world, movement_system, {.Physical, .Dynamic})
-		run_system(&world, collision_system, {.Physical})
+		run_system(&world, collision_system, {.Physical, .Collision})
+		run_system(&world, particle_system, {.Particle})
 		event_processing_task(&world.entities, &world)
 		camera_control_task(&world.entities, &world)
 		debug_stats_task(&world.entities, &world)

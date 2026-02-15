@@ -8,6 +8,7 @@ Trait :: enum {
 	Collision,
 	Controlled,
 	Damage,
+	Particle,
 }
 
 Traits :: bit_set[Trait]
@@ -30,4 +31,8 @@ Jumps :: struct {
 	count:     int,
 	remaining: int,
 	force:     f32,
+}
+
+Particle_State :: struct {
+	lifetime: f32,
 }

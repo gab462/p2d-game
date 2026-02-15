@@ -3,15 +3,16 @@ package main
 import rl "vendor:raylib"
 
 Entity :: struct {
-	traits:        Traits,
-	position:      [3]f32,
-	velocity:      [3]f32,
-	max_speed:     f32,
-	rotation:      f32, // yaw only
-	shape:         Shape,
-	collides_with: Traits,
-	jumps:         Jumps,
-	next_free:     int, // intrusive list
+	traits:         Traits,
+	position:       [3]f32,
+	velocity:       [3]f32,
+	max_speed:      f32, // for controls
+	rotation:       f32, // yaw only
+	shape:          Shape,
+	collides_with:  Traits,
+	jumps:          Jumps,
+	particle_state: Particle_State,
+	next_free:      int, // intrusive list
 }
 
 World :: struct {

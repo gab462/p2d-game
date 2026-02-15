@@ -2,6 +2,7 @@ package main
 
 import "core:fmt"
 import "core:math/linalg"
+import "core:math/rand"
 import rl "vendor:raylib"
 
 System_Proc_Type :: proc(e: ^#soa[dynamic]Entity, w: ^World, idx: int)
@@ -22,12 +23,12 @@ movement_system :: proc(e: ^#soa[dynamic]Entity, world: ^World, i: int) {
 collision_system :: proc(e: ^#soa[dynamic]Entity, world: ^World, i: int) {
 	for j := i + 1; j < len(e); j += 1 {
 		if .Inactive in e[j].traits {continue}
-		if .Physical not_in e[j].traits {continue}
+		if !(e[j].traits >= {.Physical, .Collision}) {continue}
 
 		collider, collided: int
-		if e[i].traits >= {.Dynamic, .Collision} {
+		if .Dynamic in e[i].traits {
 			collider, collided = i, j
-		} else if e[j].traits >= {.Dynamic, .Collision} {
+		} else if .Dynamic in e[j].traits {
 			collider, collided = j, i
 		} else {
 			// both objects are static and/or do not collide
@@ -79,6 +80,26 @@ event_processing_task :: proc(e: ^#soa[dynamic]Entity, world: ^World) {
 			}
 
 			e[ev.entity].velocity.y = jump.force
+		case Particle_Event:
+			for i := 0; i < ev.particle_count; i += 1 {
+				random_vec := [3]f32{rand.float32(), rand.float32(), rand.float32()} * 2.0 - 1.0
+				random_vec = linalg.normalize(random_vec) // FIXME: may be expensive
+				vel := ev.initial_velocity + ev.max_variation * random_vec
+
+				create_entity(world, {
+					traits = {.Physical, .Dynamic, .Particle},
+					position = ev.origin,
+					velocity = vel,
+					shape = Cylinder{
+						// TODO: customize
+						radius = 0.1,
+						height = 0.1,
+					},
+					particle_state = {
+						lifetime = ev.lifetime * (1 + rand.float32() - 0.5)
+					},
+				})
+			}
 		}
 	}
 
@@ -93,6 +114,14 @@ debug_draw_system :: proc(e: ^#soa[dynamic]Entity, world: ^World, i: int) {
 		rl.DrawCylinderWires(pos, s.radius, s.radius, s.height, 8, rl.GREEN)
 	case AABB:
 		rl.DrawCubeWiresV(e[i].position + [3]f32{0.0, s.size.y / 2.0, 0.0}, s.size, rl.GREEN)
+	}
+}
+
+particle_system :: proc(e: ^#soa[dynamic]Entity, world: ^World, i: int) {
+	e[i].particle_state.lifetime -= world.dt
+
+	if e[i].particle_state.lifetime <= 0 {
+		free_entity(world, i)
 	}
 }
 
@@ -142,6 +171,17 @@ input_task :: proc(e: ^#soa[dynamic]Entity, world: ^World) {
 	// Jumping
 	if rl.IsKeyPressed(rl.KeyboardKey.SPACE) {
 		append(&world.events, Jump_Event{entity = p1})
+	}
+
+	// DEBUG: generate test particles
+	if rl.IsKeyPressed(rl.KeyboardKey.P) {
+		append(&world.events, Particle_Event{
+			origin = {0.0, 3.0, 0.0},
+			particle_count = 30,
+			initial_velocity = {0.0, 5.0, 0.0},
+			max_variation = 5.0,
+			lifetime = 1.0,
+		})
 	}
 }
 
