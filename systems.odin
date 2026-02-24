@@ -68,6 +68,29 @@ event_processing_task :: proc(e: ^#soa[dynamic]Entity, world: ^World) {
 				// respawn player
 				e[world.player].position = {0.0, 10.0, 0.0}
 			}
+
+			entities := [2]int{ev.a, ev.b}
+
+			for entity in entities {
+				if .Projectile in e[entity].traits {
+					mtv := ev.data.mtv if entity == ev.a else -ev.data.mtv
+					vel := linalg.normalize(mtv)
+					vel *= 5.0
+
+					append(
+						&world.events,
+						Particle_Event {
+							origin = e[entity].position,
+							particle_count = 30,
+							initial_velocity = vel,
+							max_variation = 4.0,
+							lifetime = 1.0,
+						},
+					)
+
+					enqueue_free(world, entity)
+				}
+			}
 		case Jump_Event:
 			jump := e[ev.entity].jumps
 			if jump.remaining == 0 {
@@ -83,23 +106,39 @@ event_processing_task :: proc(e: ^#soa[dynamic]Entity, world: ^World) {
 		case Particle_Event:
 			for i := 0; i < ev.particle_count; i += 1 {
 				random_vec := [3]f32{rand.float32(), rand.float32(), rand.float32()} * 2.0 - 1.0
-				random_vec = linalg.normalize(random_vec) // FIXME: may be expensive
+				random_vec = linalg.normalize(random_vec)
 				vel := ev.initial_velocity + ev.max_variation * random_vec
 
-				create_entity(world, {
-					traits = {.Physical, .Dynamic, .Particle},
-					position = ev.origin,
-					velocity = vel,
-					shape = Cylinder{
-						// TODO: customize
-						radius = 0.1,
-						height = 0.1,
+				enqueue_create(
+					world,
+					{
+						traits = {.Physical, .Dynamic, .Particle, .Collision},
+						position = ev.origin,
+						velocity = vel,
+						shape = Cylinder {
+							radius = 0.1,
+							height = 0.1,
+						},
+						particle_state = {lifetime = ev.lifetime * (1 + rand.float32() - 0.5)},
+						collides_with = {.Stage},
 					},
-					particle_state = {
-						lifetime = ev.lifetime * (1 + rand.float32() - 0.5)
-					},
-				})
+				)
 			}
+		case Projectile_Event:
+			enqueue_create(
+				world,
+				{
+					traits = {.Physical, .Dynamic, .Particle, .Collision, .Projectile},
+					position = ev.origin,
+					velocity = ev.velocity,
+					shape = Cylinder {
+						radius = 0.3,
+						height = 0.3,
+					},
+					particle_state = {lifetime = 1.0},
+					collides_with = ev.collides_with,
+				},
+			)
 		}
 	}
 
@@ -121,7 +160,7 @@ particle_system :: proc(e: ^#soa[dynamic]Entity, world: ^World, i: int) {
 	e[i].particle_state.lifetime -= world.dt
 
 	if e[i].particle_state.lifetime <= 0 {
-		free_entity(world, i)
+		enqueue_free(world, i)
 	}
 }
 
@@ -173,15 +212,21 @@ input_task :: proc(e: ^#soa[dynamic]Entity, world: ^World) {
 		append(&world.events, Jump_Event{entity = p1})
 	}
 
-	// DEBUG: generate test particles
-	if rl.IsKeyPressed(rl.KeyboardKey.P) {
-		append(&world.events, Particle_Event{
-			origin = {0.0, 3.0, 0.0},
-			particle_count = 30,
-			initial_velocity = {0.0, 5.0, 0.0},
-			max_variation = 5.0,
-			lifetime = 1.0,
-		})
+	if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
+		shape := e[p1].shape.(Cylinder)
+
+		forward := linalg.normalize(world.camera.target - world.camera.position)
+
+		origin := e[p1].position
+		origin.y += shape.height - shape.radius
+		origin += forward * shape.radius
+
+		vel := forward * 30.0
+
+		append(
+			&world.events,
+			Projectile_Event{origin = origin, velocity = vel, collides_with = {.Stage}},
+		)
 	}
 }
 

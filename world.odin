@@ -23,6 +23,8 @@ World :: struct {
 	mouse_sensitivity: f32,
 	events:            [dynamic]Event,
 	first_free:        int,
+	to_free:           [dynamic]int,
+	to_create:         [dynamic]Entity,
 }
 
 create_world :: proc() -> World {
@@ -59,6 +61,27 @@ free_entity :: proc(world: ^World, idx: int) {
 	world.entities[idx].traits += {.Inactive}
 	world.entities[idx].next_free = world.first_free
 	world.first_free = idx
+}
+
+enqueue_create :: proc(world: ^World, e: Entity) {
+	append(&world.to_create, e)
+}
+
+enqueue_free :: proc(world: ^World, idx: int) {
+	append(&world.to_free, idx)
+}
+
+refresh_world :: proc(world: ^World) {
+	for i in world.to_free {
+		free_entity(world, i)
+	}
+
+	for e in world.to_create {
+		create_entity(world, e)
+	}
+
+	clear(&world.to_free)
+	clear(&world.to_create)
 }
 
 destroy_world :: proc(world: World) {

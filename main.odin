@@ -17,22 +17,22 @@ main :: proc() {
 			max_speed = 5.0,
 			shape = Cylinder{radius = 1.0, height = 4.0},
 			jumps = {force = 10.0, count = 2},
-			collides_with = {.Physical},
+			collides_with = {.Stage},
 		},
 	)
 
 	player_shape := world.entities[world.player].shape.(Cylinder)
 	rl.CameraMoveUp(&world.camera, player_shape.height - player_shape.radius)
 
-	enemy := create_entity(
+	box := create_entity(
 		&world,
-		Entity{traits = {.Physical, .Collision}, shape = AABB{size = {3.0, 3.0, 3.0}}},
+		Entity{traits = {.Physical, .Collision, .Stage}, shape = AABB{size = {3.0, 3.0, 3.0}}},
 	)
 
 	ground := create_entity(
 		&world,
 		Entity {
-			traits = {.Physical, .Collision},
+			traits = {.Physical, .Collision, .Stage},
 			position = {0.0, -1.0, 0.0},
 			shape = AABB{size = {100.0, 1.0, 100.0}},
 		},
@@ -41,7 +41,7 @@ main :: proc() {
 	lava := create_entity(
 		&world,
 		Entity {
-			traits = {.Physical, .Collision, .Damage},
+			traits = {.Physical, .Collision, .Damage, .Stage},
 			position = {10.0, 0.0, 10.0},
 			shape = Cylinder{radius = 1.0, height = 4.0},
 		},
@@ -75,5 +75,6 @@ main :: proc() {
 		rl.EndDrawing()
 
 		free_all(context.temp_allocator)
+		refresh_world(&world)
 	}
 }

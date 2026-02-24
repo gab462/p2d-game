@@ -9,6 +9,8 @@ Trait :: enum {
 	Controlled,
 	Damage,
 	Particle,
+	Stage,
+	Projectile,
 }
 
 Traits :: bit_set[Trait]
