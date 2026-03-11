@@ -7,6 +7,7 @@ Trait :: enum {
 	Rotation,
 	Collision,
 	Controlled,
+	Health,
 	Damage,
 	Particle,
 	Stage,

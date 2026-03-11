@@ -64,11 +64,6 @@ event_processing_task :: proc(e: ^#soa[dynamic]Entity, world: ^World) {
 				e[ev.a].jumps.remaining = e[ev.a].jumps.count
 			}
 
-			if ev.a == world.player && .Damage in e[ev.b].traits {
-				// respawn player
-				e[world.player].position = {0.0, 10.0, 0.0}
-			}
-
 			entities := [2]int{ev.a, ev.b}
 
 			for entity in entities {
@@ -89,6 +84,16 @@ event_processing_task :: proc(e: ^#soa[dynamic]Entity, world: ^World) {
 					)
 
 					enqueue_free(world, entity)
+				}
+
+				if .Damage in e[entity].traits {
+					append(
+						&world.events,
+						Damage_Event {
+							e[entity].damage,
+							ev.b if ev.a == entity else ev.a
+						}
+					)
 				}
 			}
 		case Jump_Event:
@@ -116,7 +121,7 @@ event_processing_task :: proc(e: ^#soa[dynamic]Entity, world: ^World) {
 						position = ev.origin,
 						velocity = vel,
 						shape = Cylinder {
-							radius = 0.1,
+							radius = 0.05,
 							height = 0.1,
 						},
 						particle_state = {lifetime = ev.lifetime * (1 + rand.float32() - 0.5)},
@@ -128,17 +133,35 @@ event_processing_task :: proc(e: ^#soa[dynamic]Entity, world: ^World) {
 			enqueue_create(
 				world,
 				{
-					traits = {.Physical, .Dynamic, .Particle, .Collision, .Projectile},
+					traits = {.Physical, .Dynamic, .Particle, .Collision, .Projectile, .Damage},
 					position = ev.origin,
 					velocity = ev.velocity,
 					shape = Cylinder {
-						radius = 0.3,
+						radius = 0.2,
 						height = 0.3,
 					},
+					damage = 1.0,
 					particle_state = {lifetime = 1.0},
 					collides_with = ev.collides_with,
 				},
 			)
+		case Damage_Event:
+			if !(.Health in e[ev.entity].traits) {
+				continue
+			}
+
+			e[ev.entity].health -= ev.amount
+
+			if e[ev.entity].health <= 0 {
+				append(
+					&world.events,
+					Death_Event {
+						ev.entity
+					}
+				)
+			}
+		case Death_Event:
+			enqueue_free(world, ev.entity)
 		}
 	}
 

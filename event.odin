@@ -23,9 +23,20 @@ Projectile_Event :: struct {
 	collides_with: Traits,
 }
 
+Damage_Event :: struct {
+	amount: f32,
+	entity: int,
+}
+
+Death_Event :: struct {
+	entity: int
+}
+
 Event :: union {
 	Collision_Event,
 	Jump_Event,
 	Particle_Event,
 	Projectile_Event,
+	Damage_Event,
+	Death_Event,
 }

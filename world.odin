@@ -3,15 +3,17 @@ package main
 import rl "vendor:raylib"
 
 Entity :: struct {
-	traits:         Traits,
-	position:       [3]f32,
-	velocity:       [3]f32,
+	traits:         Traits, // determines behaviour and data to be used
+	position:       [3]f32, // position on 3d space
+	velocity:       [3]f32, // position delta per frame
 	max_speed:      f32, // for controls
 	rotation:       f32, // yaw only
-	shape:          Shape,
-	collides_with:  Traits,
-	jumps:          Jumps,
-	particle_state: Particle_State,
+	damage:         f32, // damage dealt on collision
+	health:         f32, // total damage to be received before death
+	shape:          Shape, // shape for collisions
+	collides_with:  Traits, // which objects to collide with
+	jumps:          Jumps, // jump parameters
+	particle_state: Particle_State, // particle lifetime
 	next_free:      int, // intrusive list
 }
 

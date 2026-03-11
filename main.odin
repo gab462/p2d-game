@@ -38,11 +38,12 @@ main :: proc() {
 		},
 	)
 
-	lava := create_entity(
+	enemy := create_entity(
 		&world,
 		Entity {
-			traits = {.Physical, .Collision, .Damage, .Stage},
+			traits = {.Physical, .Collision, .Stage, .Health},
 			position = {10.0, 0.0, 10.0},
+			health = 3.0,
 			shape = Cylinder{radius = 1.0, height = 4.0},
 		},
 	)
