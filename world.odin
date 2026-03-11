@@ -32,7 +32,7 @@ World :: struct {
 create_world :: proc() -> World {
 	world: World = {
 		camera = {target = {0.0, 0.0, 1.0}, up = {0.0, 1.0, 0.0}, fovy = 45.0},
-		mouse_sensitivity = 0.01,
+		mouse_sensitivity = 0.002,
 	}
 
 	// nil entity

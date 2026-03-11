@@ -6,7 +6,9 @@ main :: proc() {
 	world := create_world()
 	defer destroy_world(world)
 
-	rl.InitWindow(800, 600, "p2d-game")
+	rl.SetConfigFlags(rl.ConfigFlags{.FULLSCREEN_MODE});
+
+	rl.InitWindow(rl.GetScreenWidth(), rl.GetScreenHeight(), "p2d-game")
 	defer rl.CloseWindow()
 
 	world.player = create_entity(
@@ -14,7 +16,7 @@ main :: proc() {
 		Entity {
 			traits = {.Physical, .Dynamic, .Rotation, .Controlled, .Collision},
 			position = {0.0, 10.0, 0.0},
-			max_speed = 5.0,
+			max_speed = 10.0,
 			shape = Cylinder{radius = 1.0, height = 4.0},
 			jumps = {force = 10.0, count = 2},
 			collides_with = {.Stage},
